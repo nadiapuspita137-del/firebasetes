@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💬 Chat Pro | Hapus Semua</title>
+    <title>💬 Chat Pro</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, sans-serif; }
         body { background:#0b141a; height:100vh; display:flex; justify-content:center; align-items:center; }
 
         /* LOGIN */
@@ -35,10 +35,10 @@
         .room-name { font-weight:bold; font-size:1.1rem; }
         .room-status { font-size:0.7rem; opacity:0.8; display:flex; align-items:center; gap:5px; }
         .online-count { background:rgba(255,255,255,0.2); padding:2px 10px; border-radius:20px; font-size:0.75rem; }
-        .header-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .header-right { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
         #clearAllBtn {
-            background:#d32f2f; border:none; color:white; padding:4px 10px; border-radius:20px;
-            font-size:0.7rem; cursor:pointer; transition:0.2s;
+            background:#d32f2f; border:none; color:white; padding:4px 12px; border-radius:20px;
+            font-size:0.75rem; cursor:pointer; transition:0.2s; font-weight:bold;
         }
         #clearAllBtn:hover { background:#b71c1c; transform:scale(0.95); }
         #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; cursor:pointer; font-size:0.75rem; }
@@ -83,6 +83,7 @@
         /* INPUT */
         #inputPanel {
             background:#f0f0f0; padding:8px 10px; display:flex; align-items:center; gap:6px;
+            position:relative;
         }
         #messageInput {
             flex:1; padding:10px 14px; border:none; border-radius:30px; background:white; font-size:0.95rem;
@@ -91,6 +92,7 @@
         .tool-btn {
             background:transparent; border:none; font-size:1.4rem; cursor:pointer; padding:4px;
             border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+            transition:0.2s;
         }
         .tool-btn:hover { background:rgba(0,0,0,0.05); }
         #sendBtn {
@@ -99,6 +101,39 @@
         }
         #sendBtn:hover { background:#064a42; }
         #fileInput { display:none; }
+
+        /* EMOJI PICKER PANEL */
+        #emojiPicker {
+            display:none;
+            position:absolute;
+            bottom:60px;
+            left:10px;
+            background:white;
+            border-radius:12px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.2);
+            padding:10px;
+            width:260px;
+            max-height:200px;
+            overflow-y:auto;
+            z-index:100;
+            flex-wrap:wrap;
+            gap:4px;
+            justify-content:center;
+        }
+        #emojiPicker span {
+            font-size:1.6rem;
+            cursor:pointer;
+            padding:4px;
+            border-radius:8px;
+            transition:0.1s;
+            line-height:1.2;
+        }
+        #emojiPicker span:hover {
+            background:#f0f0f0;
+            transform:scale(1.2);
+        }
+        #emojiPicker::-webkit-scrollbar { width:4px; }
+        #emojiPicker::-webkit-scrollbar-thumb { background:#ccc; border-radius:4px; }
     </style>
 </head>
 <body>
@@ -145,6 +180,11 @@
         <input type="file" id="fileInput" accept="image/*">
         <input type="text" id="messageInput" placeholder="Ketik pesan...">
         <button id="sendBtn">➤</button>
+
+        <!-- EMOJI PICKER -->
+        <div id="emojiPicker">
+            <!-- Emojis akan diisi oleh JS -->
+        </div>
     </div>
 </div>
 
@@ -154,7 +194,7 @@
 
 <script>
     // ==========================================================
-    // 🔥 KONFIGURASI FIREBASE (sesuaikan dengan project kamu)
+    // 🔥 KONFIGURASI FIREBASE
     // ==========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",
@@ -170,7 +210,7 @@
     const db = firebase.database();
 
     // ==========================================================
-    // 🎯 KODE ROOM RAHASIA (GANTI SESUKA ADMIN)
+    // 🎯 KODE ROOM (GANTI SESUKA ANDA)
     // ==========================================================
     const ROOM_CODE = "Rahasia123";
 
@@ -221,6 +261,23 @@
     const photoBtn = document.getElementById('photoBtn');
     const fileInput = document.getElementById('fileInput');
     const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+
+    // ==========================================================
+    // 🛡️ PROTECTION: DISABLE INSPECT + CTRL+U + F12
+    // ==========================================================
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        // Ctrl+U, Ctrl+Shift+U, Ctrl+Shift+I, F12
+        if ((e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J')) ||
+            e.key === 'F12') {
+            e.preventDefault();
+        }
+    });
+    // Mencegah drag & drop file (opsional)
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => e.preventDefault());
 
     // ==========================================================
     // 🔐 LOGIN
@@ -279,15 +336,13 @@
     });
 
     // ==========================================================
-    // 🗑️ HAPUS SEMUA PESAN (konfirmasi ganda)
+    // 🗑️ HAPUS SEMUA PESAN (dengan konfirmasi ganda)
     // ==========================================================
     clearAllBtn.addEventListener('click', () => {
         if (!confirm('⚠️ Hapus SEMUA pesan di room ini?')) return;
         if (!confirm('Yakin? Data akan hilang permanen!')) return;
-        // Hapus semua child di node messages
         messagesRef.remove()
             .then(() => {
-                // System message
                 messagesRef.push({
                     name: 'System',
                     text: `🧹 Semua pesan telah dihapus oleh ${currentUser.name}`,
@@ -301,6 +356,33 @@
     });
 
     // ==========================================================
+    // 😊 EMOJI PICKER (PILIHAN, BUKAN RANDOM)
+    // ==========================================================
+    const emojiList = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻','✨','❤️‍🔥','💀','😈','👿','🤖','🎃','👽','🤗','🤩','🥳','🤪','🤫','🤭','🧐','🤨','😏','😌','😇','😺','😸','😻','😽','🙌','👋','🤚','🖐','✌','🤞','🤟','🤘','👌','🤏','🫶','💕','💗','💖','💘','💝','💞','💓'];
+    emojiPicker.innerHTML = emojiList.map(emoji => `<span>${emoji}</span>`).join('');
+
+    emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    // Click outside to close emoji picker
+    document.addEventListener('click', (e) => {
+        if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+            emojiPicker.style.display = 'none';
+        }
+    });
+
+    // Insert emoji to input
+    emojiPicker.querySelectorAll('span').forEach(el => {
+        el.addEventListener('click', () => {
+            messageInput.value += el.textContent;
+            messageInput.focus();
+            emojiPicker.style.display = 'none';
+        });
+    });
+
+    // ==========================================================
     // 💬 START CHAT
     // ==========================================================
     function startChat() {
@@ -309,14 +391,11 @@
         presenceRef = db.ref(`${roomNode}/presence/${currentUser.name}`);
         typingRef = db.ref(`${roomNode}/typing`);
 
-        // Bersihkan area
         messagesArea.innerHTML = `<div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>`;
 
-        // Set user ONLINE
         presenceRef.set(true);
         presenceRef.onDisconnect().remove();
 
-        // Join notification
         messagesRef.push({
             name: 'System',
             text: `🟢 ${currentUser.name} telah bergabung`,
@@ -324,14 +403,12 @@
             type: 'system'
         });
 
-        // LISTENER MESSAGES
         messagesRef.orderByChild('timestamp').on('child_added', (snap) => {
             const data = snap.val();
             if (!data) return;
             const msgId = snap.key;
             if (document.querySelector(`[data-id="${msgId}"]`)) return;
 
-            // System message
             if (data.type === 'system') {
                 const div = document.createElement('div');
                 div.className = 'system-msg';
@@ -355,7 +432,6 @@
             }
             content += `<div class="time">${formatTime(data.timestamp)}</div>`;
 
-            // Tombol hapus (hanya pesan sendiri)
             if (isSelf) {
                 content += `<button class="delete-btn" data-msgid="${msgId}">✕</button>`;
             }
@@ -364,7 +440,6 @@
             messagesArea.appendChild(bubble);
             scrollToBottom();
 
-            // Event delete
             if (isSelf) {
                 const delBtn = bubble.querySelector('.delete-btn');
                 if (delBtn) {
@@ -377,17 +452,14 @@
                 }
             }
 
-            // Notifikasi suara (pesan orang lain)
             if (!isSelf) playNotification();
         });
 
-        // LISTENER DELETE (pesan dihapus dari database -> hapus dari DOM)
         messagesRef.on('child_removed', (snap) => {
             const el = document.querySelector(`[data-id="${snap.key}"]`);
             if (el) el.remove();
         });
 
-        // USER COUNT (Online)
         const onlineCountRef = db.ref(`${roomNode}/presence`);
         onlineCountRef.on('value', (snap) => {
             const val = snap.val();
@@ -395,7 +467,6 @@
             onlineCount.textContent = count;
         });
 
-        // LEAVE NOTIFICATION
         onlineCountRef.on('child_removed', (snap) => {
             const name = snap.key;
             if (name === currentUser.name) return;
@@ -407,7 +478,6 @@
             });
         });
 
-        // TYPING INDICATOR (ALAMI)
         typingRef.on('value', (snap) => {
             const data = snap.val();
             if (!data) {
@@ -423,7 +493,6 @@
             }
         });
 
-        // DETECT TYPING
         let typingTimeout = null;
         messageInput.addEventListener('input', () => {
             const update = {};
@@ -438,7 +507,6 @@
             }, 1500);
         });
 
-        // SEND TEXT
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
@@ -454,13 +522,11 @@
                 type: 'text'
             });
             messageInput.value = '';
-            // Hapus status typing
             const remove = {};
             remove[currentUser.name] = null;
             typingRef.update(remove);
         }
 
-        // 📷 UPLOAD FOTO (BASE64 - 100% GRATIS)
         photoBtn.addEventListener('click', () => {
             fileInput.click();
         });
@@ -473,7 +539,6 @@
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 const base64 = ev.target.result;
-                // Batasi ukuran base64 agar tidak overload database (opsional)
                 if (base64.length > 500000) {
                     alert('Foto terlalu besar! Maksimal 500KB (base64).');
                     return;
@@ -488,15 +553,6 @@
             reader.readAsDataURL(file);
         });
 
-        // 😊 EMOJI
-        emojiBtn.addEventListener('click', () => {
-            const emojis = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻','✨','🔥','❤️‍🔥','💀'];
-            const pick = emojis[Math.floor(Math.random() * emojis.length)];
-            messageInput.value += pick;
-            messageInput.focus();
-        });
-
-        // STATUS KONEKSI
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 statusDisplay.textContent = '● Online';
@@ -507,7 +563,6 @@
             }
         });
 
-        // HELPER
         function scrollToBottom() {
             setTimeout(() => {
                 messagesArea.scrollTop = messagesArea.scrollHeight;
