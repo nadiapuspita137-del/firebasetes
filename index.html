@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💬 Chat Pro (Tanpa Storage)</title>
+    <title>💬 Chat Pro | Hapus Semua</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background:#0b141a; height:100vh; display:flex; justify-content:center; align-items:center; }
 
         /* LOGIN */
@@ -13,7 +13,7 @@
             background:#fff; padding:40px 30px; border-radius:20px; width:100%; max-width:400px;
             text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);
         }
-        #loginPage h1 { color:#075e54; margin-bottom:10px; }
+        #loginPage h1 { color:#075e54; margin-bottom:5px; }
         #loginPage p { color:#666; margin-bottom:20px; }
         .input-group { text-align:left; margin-bottom:12px; }
         .input-group label { font-weight:600; display:block; margin-bottom:3px; }
@@ -23,20 +23,25 @@
         #loginBtn:hover { background:#064a42; }
         #loginError { color:#d32f2f; font-size:0.85rem; display:none; margin-top:8px; }
 
-        /* CHAT */
+        /* CHAT APP */
         #chatApp { display:none; width:100%; max-width:480px; height:90vh; background:#efeae2; border-radius:25px; overflow:hidden; flex-direction:column; box-shadow:0 0 40px rgba(0,0,0,0.3); }
 
         /* HEADER */
         #chatHeader {
-            background:#075e54; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
-            flex-wrap:wrap; gap:5px;
+            background:#075e54; color:white; padding:10px 16px; display:flex; justify-content:space-between; align-items:center;
+            flex-wrap:wrap; gap:4px;
         }
         .header-left { display:flex; flex-direction:column; }
         .room-name { font-weight:bold; font-size:1.1rem; }
         .room-status { font-size:0.7rem; opacity:0.8; display:flex; align-items:center; gap:5px; }
         .online-count { background:rgba(255,255,255,0.2); padding:2px 10px; border-radius:20px; font-size:0.75rem; }
-        .header-right { display:flex; gap:8px; align-items:center; }
-        #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:5px 12px; border-radius:20px; cursor:pointer; }
+        .header-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        #clearAllBtn {
+            background:#d32f2f; border:none; color:white; padding:4px 10px; border-radius:20px;
+            font-size:0.7rem; cursor:pointer; transition:0.2s;
+        }
+        #clearAllBtn:hover { background:#b71c1c; transform:scale(0.95); }
+        #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; cursor:pointer; font-size:0.75rem; }
 
         /* MESSAGES */
         #messagesArea {
@@ -50,7 +55,7 @@
 
         /* BUBBLE */
         .bubble {
-            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.1); 
+            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.1);
             animation:fade 0.2s; position:relative;
         }
         @keyframes fade { from{opacity:0;transform:scale(0.9);} to{opacity:1;transform:scale(1);} }
@@ -60,7 +65,7 @@
         .bubble .text { font-size:0.95rem; color:#111; margin:2px 0; }
         .bubble .time { font-size:0.6rem; color:#888; text-align:right; margin-top:2px; }
 
-        /* HAPUS PESAN */
+        /* TOMBOL HAPUS PER PESAN */
         .bubble.self .delete-btn {
             display:none; position:absolute; top:-6px; right:-6px; background:#d32f2f; color:white;
             border:none; border-radius:50%; width:20px; height:20px; font-size:0.6rem; cursor:pointer;
@@ -101,7 +106,7 @@
 <!-- LOGIN -->
 <div id="loginPage">
     <h1>💬 Chat Pro</h1>
-    <p>Masukkan nama & kode room (gratis)</p>
+    <p>Masukkan nama & kode room</p>
     <div class="input-group">
         <label>👤 Nama</label>
         <input type="text" id="inputName" placeholder="Contoh: Andi">
@@ -125,6 +130,7 @@
             </div>
         </div>
         <div class="header-right">
+            <button id="clearAllBtn">🗑️ Hapus Semua</button>
             <button id="logoutBtn">Keluar</button>
         </div>
     </div>
@@ -142,13 +148,13 @@
     </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
     // ==========================================================
-    // 🔥 KONFIGURASI FIREBASE
+    // 🔥 KONFIGURASI FIREBASE (sesuaikan dengan project kamu)
     // ==========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",
@@ -164,7 +170,7 @@
     const db = firebase.database();
 
     // ==========================================================
-    // 🎯 KODE ROOM (Ganti sesuai keinginan)
+    // 🎯 KODE ROOM RAHASIA (GANTI SESUKA ADMIN)
     // ==========================================================
     const ROOM_CODE = "Rahasia123";
 
@@ -174,7 +180,17 @@
     function playNotification() {
         try {
             const audio = new Audio('notif.mp3');
-            audio.play().catch(() => { /* beep fallback pakai web audio */ });
+            audio.play().catch(() => {
+                // fallback beep
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 880; osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
+            });
         } catch(e) {}
     }
 
@@ -186,7 +202,7 @@
     let presenceRef = null;
     let typingRef = null;
 
-    // DOM elements
+    // DOM
     const loginPage = document.getElementById('loginPage');
     const chatApp = document.getElementById('chatApp');
     const inputName = document.getElementById('inputName');
@@ -194,6 +210,7 @@
     const loginBtn = document.getElementById('loginBtn');
     const loginError = document.getElementById('loginError');
     const logoutBtn = document.getElementById('logoutBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
     const roomNameDisplay = document.getElementById('roomNameDisplay');
     const messagesArea = document.getElementById('messagesArea');
     const messageInput = document.getElementById('messageInput');
@@ -262,6 +279,28 @@
     });
 
     // ==========================================================
+    // 🗑️ HAPUS SEMUA PESAN (konfirmasi ganda)
+    // ==========================================================
+    clearAllBtn.addEventListener('click', () => {
+        if (!confirm('⚠️ Hapus SEMUA pesan di room ini?')) return;
+        if (!confirm('Yakin? Data akan hilang permanen!')) return;
+        // Hapus semua child di node messages
+        messagesRef.remove()
+            .then(() => {
+                // System message
+                messagesRef.push({
+                    name: 'System',
+                    text: `🧹 Semua pesan telah dihapus oleh ${currentUser.name}`,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    type: 'system'
+                });
+            })
+            .catch(err => {
+                alert('Gagal menghapus: ' + err.message);
+            });
+    });
+
+    // ==========================================================
     // 💬 START CHAT
     // ==========================================================
     function startChat() {
@@ -292,7 +331,7 @@
             const msgId = snap.key;
             if (document.querySelector(`[data-id="${msgId}"]`)) return;
 
-            // System
+            // System message
             if (data.type === 'system') {
                 const div = document.createElement('div');
                 div.className = 'system-msg';
@@ -342,7 +381,7 @@
             if (!isSelf) playNotification();
         });
 
-        // LISTENER DELETE
+        // LISTENER DELETE (pesan dihapus dari database -> hapus dari DOM)
         messagesRef.on('child_removed', (snap) => {
             const el = document.querySelector(`[data-id="${snap.key}"]`);
             if (el) el.remove();
@@ -434,10 +473,15 @@
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 const base64 = ev.target.result;
+                // Batasi ukuran base64 agar tidak overload database (opsional)
+                if (base64.length > 500000) {
+                    alert('Foto terlalu besar! Maksimal 500KB (base64).');
+                    return;
+                }
                 messagesRef.push({
                     name: currentUser.name,
                     type: 'image',
-                    url: base64, // Langsung simpan base64 (tanpa storage)
+                    url: base64,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
             };
@@ -446,7 +490,7 @@
 
         // 😊 EMOJI
         emojiBtn.addEventListener('click', () => {
-            const emojis = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻'];
+            const emojis = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻','✨','🔥','❤️‍🔥','💀'];
             const pick = emojis[Math.floor(Math.random() * emojis.length)];
             messageInput.value += pick;
             messageInput.focus();
