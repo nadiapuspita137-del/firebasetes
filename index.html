@@ -37,28 +37,30 @@ window.kirim = async () => {
 
   console.log("Tombol diklik");
 
-  const pesan =
-    document.getElementById("pesan").value;
-
-  console.log("Isi pesan:", pesan);
-
   try {
 
-    await addDoc(
-      collection(db,"chat"),
+    const pesan =
+      document.getElementById("pesan").value;
+
+    console.log("Isi pesan:", pesan);
+
+    const hasil = await addDoc(
+      collection(db, "chat"),
       {
         pesan: pesan,
         waktu: Date.now()
       }
     );
 
-    console.log("Berhasil simpan");
+    console.log("Berhasil simpan", hasil.id);
 
-    alert("Berhasil");
+    alert("Berhasil disimpan");
 
-  } catch(err) {
+  } catch (err) {
 
-    console.error(err);
+    console.error("ERROR FIREBASE:", err);
+
+    alert(err.message);
 
   }
 
