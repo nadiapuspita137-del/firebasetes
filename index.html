@@ -3,145 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💬 Chat Pro</title>
+    <title>Ayah kau Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, sans-serif; }
-        body { background:#0b141a; height:100vh; display:flex; justify-content:center; align-items:center; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Cinzel', serif; }
+        body { background: #05040a; height:100vh; display:flex; align-items:center; justify-content:center; }
 
         /* LOGIN */
         #loginPage {
-            background:#fff; padding:40px 30px; border-radius:20px; width:100%; max-width:400px;
-            text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);
+            background: linear-gradient(145deg, #1a1025, #0d0815);
+            padding:40px 30px; border-radius:20px; width:100%; max-width:420px;
+            text-align:center; 
+            border:2px solid #d4af37;
+            box-shadow: 0 0 30px rgba(212,175,55,0.2), inset 0 0 30px rgba(212,175,55,0.05);
+            position:relative;
         }
-        #loginPage h1 { color:#075e54; margin-bottom:5px; }
-        #loginPage p { color:#666; margin-bottom:20px; }
-        .input-group { text-align:left; margin-bottom:12px; }
-        .input-group label { font-weight:600; display:block; margin-bottom:3px; }
-        .input-group input { width:100%; padding:12px; border:2px solid #ddd; border-radius:10px; }
-        .input-group input:focus { border-color:#075e54; outline:none; }
-        #loginBtn { width:100%; background:#075e54; color:#fff; border:none; padding:14px; border-radius:10px; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:8px; }
-        #loginBtn:hover { background:#064a42; }
-        #loginError { color:#d32f2f; font-size:0.85rem; display:none; margin-top:8px; }
+        #loginPage::before {
+            content:'⚜️';
+            position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+            font-size:2.5rem; filter:drop-shadow(0 0 10px #d4af37);
+        }
+        #loginPage h1 { 
+            font-family: 'Orbitron', sans-serif; 
+            color:#d4af37; margin-bottom:5px; 
+            text-shadow:0 0 15px rgba(212,175,55,0.3);
+        }
+        #loginPage p { color:#b8a9d4; margin-bottom:20px; font-size:0.85rem; }
+        .input-group { text-align:left; margin-bottom:15px; }
+        .input-group label { 
+            color:#d4af37; font-weight:700; display:block; margin-bottom:4px; 
+            font-size:0.75rem; letter-spacing:2px;
+        }
+        .input-group input {
+            width:100%; padding:12px; background:#120c1a; border:1px solid #3d2b5a;
+            border-radius:10px; color:#fff; font-size:0.95rem; transition:0.3s;
+            font-family: 'Cinzel', serif;
+        }
+        .input-group input:focus { 
+            border-color:#d4af37; outline:none; 
+            box-shadow:0 0 15px rgba(212,175,55,0.2);
+        }
+        #loginBtn {
+            width:100%; background:linear-gradient(45deg, #d4af37, #b8962f); color:#0a080e;
+            border:none; padding:14px; border-radius:10px; font-weight:bold; font-size:1.1rem;
+            cursor:pointer; margin-top:8px; transition:0.3s; font-family: 'Orbitron', sans-serif;
+        }
+        #loginBtn:hover { transform:scale(1.02); box-shadow:0 0 25px rgba(212,175,55,0.4); }
+        #loginError { color:#ff5e5e; font-size:0.85rem; display:none; margin-top:8px; }
 
         /* CHAT APP */
-        #chatApp { display:none; width:100%; max-width:480px; height:90vh; background:#efeae2; border-radius:25px; overflow:hidden; flex-direction:column; box-shadow:0 0 40px rgba(0,0,0,0.3); }
+        #chatApp { display:none; width:100%; max-width:480px; height:90vh; background:#08060c; border-radius:25px; overflow:hidden; flex-direction:column; box-shadow:0 0 60px rgba(0,255,255,0.1), 0 0 80px rgba(212,175,55,0.05); border:1px solid #3d2b5a; }
 
         /* HEADER */
         #chatHeader {
-            background:#075e54; color:white; padding:10px 16px; display:flex; justify-content:space-between; align-items:center;
-            flex-wrap:wrap; gap:4px;
+            background:linear-gradient(180deg, #1a1025, #0d0815); 
+            padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
+            flex-wrap:wrap; gap:6px; border-bottom:2px solid #d4af37;
         }
         .header-left { display:flex; flex-direction:column; }
-        .room-name { font-weight:bold; font-size:1.1rem; }
-        .room-status { font-size:0.7rem; opacity:0.8; display:flex; align-items:center; gap:5px; }
-        .online-count { background:rgba(255,255,255,0.2); padding:2px 10px; border-radius:20px; font-size:0.75rem; }
+        .room-name { 
+            font-family:'Orbitron', sans-serif; font-weight:bold; font-size:1rem; 
+            color:#d4af37; text-shadow:0 0 10px rgba(212,175,55,0.2);
+        }
+        .room-status { font-size:0.7rem; opacity:0.8; display:flex; align-items:center; gap:6px; color:#b8a9d4; }
+        .online-count { 
+            background:rgba(212,175,55,0.15); padding:2px 12px; border-radius:20px; 
+            font-size:0.75rem; border:1px solid #d4af37; color:#d4af37;
+        }
         .header-right { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
         #clearAllBtn {
-            background:#d32f2f; border:none; color:white; padding:4px 12px; border-radius:20px;
-            font-size:0.75rem; cursor:pointer; transition:0.2s; font-weight:bold;
+            background:linear-gradient(45deg, #5e1a1a, #8b1a1a); border:none; color:#ffd700;
+            padding:4px 12px; border-radius:20px; font-size:0.7rem; cursor:pointer; 
+            transition:0.3s; font-family:'Orbitron', sans-serif; border:1px solid #ff4444;
         }
-        #clearAllBtn:hover { background:#b71c1c; transform:scale(0.95); }
-        #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; cursor:pointer; font-size:0.75rem; }
+        #clearAllBtn:hover { transform:scale(0.95); background:#a10000; box-shadow:0 0 20px rgba(255,0,0,0.3); }
+        #logoutBtn { 
+            background:rgba(255,255,255,0.05); border:1px solid #3d2b5a; color:#b8a9d4; 
+            padding:4px 12px; border-radius:20px; cursor:pointer; font-size:0.7rem; 
+            font-family:'Cinzel', serif;
+        }
+        #logoutBtn:hover { background:rgba(255,255,255,0.1); }
 
-        /* MESSAGES */
+        /* MESSAGES AREA */
         #messagesArea {
-            flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:4px;
-            background:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') repeat;
-            background-size:cover;
+            flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px;
+            background:radial-gradient(circle at 20% 30%, #1a1025, #05040a);
+            background-size:cover; position:relative;
+        }
+        #messagesArea::before {
+            content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+            background-image: 
+                linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
+            background-size:50px 50px; pointer-events:none;
         }
         #messagesArea::-webkit-scrollbar { width:5px; }
-        #messagesArea::-webkit-scrollbar-track { background:#ddd; }
-        #messagesArea::-webkit-scrollbar-thumb { background:#aaa; border-radius:10px; }
+        #messagesArea::-webkit-scrollbar-track { background:#120c1a; }
+        #messagesArea::-webkit-scrollbar-thumb { background:#d4af37; border-radius:10px; }
 
         /* BUBBLE */
         .bubble {
-            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.1);
-            animation:fade 0.2s; position:relative;
+            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:12px; 
+            box-shadow:0 2px 8px rgba(0,0,0,0.5); animation:fade 0.2s; position:relative;
+            backdrop-filter:blur(4px); border:1px solid rgba(212,175,55,0.15);
+            background:rgba(30,20,40,0.6);
         }
-        @keyframes fade { from{opacity:0;transform:scale(0.9);} to{opacity:1;transform:scale(1);} }
-        .bubble.self { align-self:flex-end; background:#dcf8c6; border-top-right-radius:2px; }
-        .bubble.other { align-self:flex-start; background:white; border-top-left-radius:2px; }
-        .bubble .sender { font-size:0.7rem; font-weight:600; color:#075e54; }
-        .bubble .text { font-size:0.95rem; color:#111; margin:2px 0; }
-        .bubble .time { font-size:0.6rem; color:#888; text-align:right; margin-top:2px; }
+        @keyframes fade { from{opacity:0;transform:scale(0.9) translateY(5px);} to{opacity:1;transform:scale(1) translateY(0);} }
+        .bubble.self { 
+            align-self:flex-end; background:rgba(0,255,255,0.08); 
+            border:1px solid rgba(0,255,255,0.4); border-top-right-radius:4px;
+            box-shadow:0 0 15px rgba(0,255,255,0.05);
+        }
+        .bubble.other { 
+            align-self:flex-start; background:rgba(212,175,55,0.08); 
+            border:1px solid rgba(212,175,55,0.3); border-top-left-radius:4px;
+            box-shadow:0 0 15px rgba(212,175,55,0.05);
+        }
+        .bubble .sender { 
+            font-size:0.7rem; font-weight:700; color:#d4af37; 
+            letter-spacing:1px; margin-bottom:2px;
+        }
+        .bubble.self .sender { color:#00e5ff; }
+        .bubble .text { font-size:0.95rem; color:#ede7f6; margin:2px 0; line-height:1.4; }
+        .bubble .time { font-size:0.6rem; color:#7a6b8a; text-align:right; margin-top:2px; }
 
-        /* TOMBOL HAPUS PER PESAN */
+        /* HAPUS PER PESAN */
         .bubble.self .delete-btn {
-            display:none; position:absolute; top:-6px; right:-6px; background:#d32f2f; color:white;
-            border:none; border-radius:50%; width:20px; height:20px; font-size:0.6rem; cursor:pointer;
-            box-shadow:0 1px 3px rgba(0,0,0,0.2);
+            display:none; position:absolute; top:-6px; right:-6px; background:#d32f2f; 
+            color:white; border:none; border-radius:50%; width:20px; height:20px; 
+            font-size:0.6rem; cursor:pointer; box-shadow:0 0 15px rgba(255,0,0,0.3);
+            border:1px solid #ff5555;
         }
         .bubble.self:hover .delete-btn { display:block; }
 
-        /* FOTO BASE64 */
-        .bubble img { max-width:200px; max-height:200px; border-radius:8px; margin-top:4px; display:block; }
-
-        /* SYSTEM & TYPING */
-        .system-msg { text-align:center; font-size:0.75rem; color:#888; padding:4px 0; }
-        #typingIndicator { text-align:center; font-size:0.75rem; color:#075e54; font-style:italic; padding:2px 0; display:none; }
-
-        /* INPUT */
-        #inputPanel {
-            background:#f0f0f0; padding:8px 10px; display:flex; align-items:center; gap:6px;
-            position:relative;
-        }
-        #messageInput {
-            flex:1; padding:10px 14px; border:none; border-radius:30px; background:white; font-size:0.95rem;
-        }
-        #messageInput:focus { outline:none; }
-        .tool-btn {
-            background:transparent; border:none; font-size:1.4rem; cursor:pointer; padding:4px;
-            border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+        /* FOTO - bisa diklik */
+        .bubble img { 
+            max-width:200px; max-height:200px; border-radius:8px; margin-top:4px; 
+            display:block; border:1px solid rgba(212,175,55,0.2); cursor:pointer;
             transition:0.2s;
         }
-        .tool-btn:hover { background:rgba(0,0,0,0.05); }
-        #sendBtn {
-            background:#075e54; color:white; border:none; border-radius:50%; width:45px; height:45px;
-            font-size:1.2rem; cursor:pointer;
+        .bubble img:hover { filter:brightness(1.2); transform:scale(1.02); }
+
+        /* SYSTEM & TYPING */
+        .system-msg { 
+            text-align:center; font-size:0.7rem; color:#8b7a9e; padding:4px 0; 
+            font-style:italic; letter-spacing:0.5px;
         }
-        #sendBtn:hover { background:#064a42; }
+        #typingIndicator { 
+            text-align:center; font-size:0.7rem; color:#00e5ff; font-style:italic; 
+            padding:4px 0; display:none; text-shadow:0 0 10px rgba(0,229,255,0.2);
+            animation:blinkTyping 1.2s infinite;
+        }
+        @keyframes blinkTyping {
+            0%, 100% { opacity:1; }
+            50% { opacity:0.3; }
+        }
+
+        /* INPUT PANEL */
+        #inputPanel {
+            background:#120c1a; padding:8px 10px; display:flex; align-items:center; gap:6px;
+            border-top:2px solid #d4af37; position:relative;
+        }
+        #messageInput {
+            flex:1; padding:10px 14px; border:1px solid #3d2b5a; border-radius:30px; 
+            background:#08060c; color:#ede7f6; font-size:0.9rem; font-family:'Cinzel', serif;
+        }
+        #messageInput:focus { outline:none; border-color:#d4af37; box-shadow:0 0 15px rgba(212,175,55,0.1); }
+        .tool-btn {
+            background:transparent; border:1px solid #3d2b5a; font-size:1.3rem; cursor:pointer;
+            border-radius:50%; width:38px; height:38px; display:flex; align-items:center; 
+            justify-content:center; transition:0.3s; color:#d4af37;
+        }
+        .tool-btn:hover { background:rgba(212,175,55,0.1); border-color:#d4af37; transform:scale(1.05); }
+        #sendBtn {
+            background:linear-gradient(45deg, #d4af37, #b8962f); border:none; border-radius:50%;
+            width:44px; height:44px; font-size:1.2rem; cursor:pointer; transition:0.3s; 
+            color:#08060c; font-weight:bold; border:1px solid #d4af37;
+        }
+        #sendBtn:hover { transform:scale(1.05); box-shadow:0 0 20px rgba(212,175,55,0.3); }
         #fileInput { display:none; }
 
-        /* EMOJI PICKER PANEL */
+        /* EMOJI PICKER - CYBER MEDIEVAL */
         #emojiPicker {
-            display:none;
-            position:absolute;
-            bottom:60px;
-            left:10px;
-            background:white;
-            border-radius:12px;
-            box-shadow:0 5px 20px rgba(0,0,0,0.2);
-            padding:10px;
-            width:260px;
-            max-height:200px;
-            overflow-y:auto;
-            z-index:100;
-            flex-wrap:wrap;
-            gap:4px;
-            justify-content:center;
+            display:none; position:absolute; bottom:60px; left:10px;
+            background:linear-gradient(145deg, #1a1025, #0d0815); border:1px solid #d4af37;
+            border-radius:15px; box-shadow:0 0 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(212,175,55,0.05);
+            padding:10px; width:280px; max-height:220px; overflow-y:auto; z-index:100;
+            display:flex; flex-wrap:wrap; gap:4px; justify-content:center;
         }
         #emojiPicker span {
-            font-size:1.6rem;
-            cursor:pointer;
-            padding:4px;
-            border-radius:8px;
-            transition:0.1s;
-            line-height:1.2;
+            font-size:1.8rem; cursor:pointer; padding:4px; border-radius:8px; 
+            transition:0.1s; line-height:1.2; background:rgba(255,255,255,0.03);
+            border:1px solid transparent;
         }
         #emojiPicker span:hover {
-            background:#f0f0f0;
-            transform:scale(1.2);
+            background:rgba(212,175,55,0.2); border-color:#d4af37;
+            transform:scale(1.3); box-shadow:0 0 15px rgba(212,175,55,0.2);
         }
         #emojiPicker::-webkit-scrollbar { width:4px; }
-        #emojiPicker::-webkit-scrollbar-thumb { background:#ccc; border-radius:4px; }
+        #emojiPicker::-webkit-scrollbar-thumb { background:#d4af37; border-radius:4px; }
     </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginPage">
-    <h1>💬 Chat Pro</h1>
-    <p>Masukkan nama & kode room</p>
+    <h1>⚔️ Medieval Chat</h1>
+    <p>Masukkan nama & kode room (Rahasia123)</p>
     <div class="input-group">
         <label>👤 Nama</label>
         <input type="text" id="inputName" placeholder="Contoh: Andi">
@@ -176,15 +244,11 @@
 
     <div id="inputPanel">
         <button class="tool-btn" id="emojiBtn" title="Emoji">😊</button>
-        <button class="tool-btn" id="photoBtn" title="Kirim Foto (Base64)">📷</button>
+        <button class="tool-btn" id="photoBtn" title="Kirim Foto">📷</button>
         <input type="file" id="fileInput" accept="image/*">
         <input type="text" id="messageInput" placeholder="Ketik pesan...">
         <button id="sendBtn">➤</button>
-
-        <!-- EMOJI PICKER -->
-        <div id="emojiPicker">
-            <!-- Emojis akan diisi oleh JS -->
-        </div>
+        <div id="emojiPicker"></div>
     </div>
 </div>
 
@@ -194,7 +258,7 @@
 
 <script>
     // ==========================================================
-    // 🔥 KONFIGURASI FIREBASE
+    // 🔥 KONFIGURASI FIREBASE (SESUAIKAN DENGAN PROJECT KAMU)
     // ==========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",
@@ -215,7 +279,7 @@
     const ROOM_CODE = "Rahasia123";
 
     // ==========================================================
-    // 🔔 NOTIFIKASI SUARA
+    // 🔔 NOTIFIKASI SUARA (notif.mp3 harus ada di folder)
     // ==========================================================
     function playNotification() {
         try {
@@ -268,14 +332,12 @@
     // ==========================================================
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
-        // Ctrl+U, Ctrl+Shift+U, Ctrl+Shift+I, F12
         if ((e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
             (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J')) ||
             e.key === 'F12') {
             e.preventDefault();
         }
     });
-    // Mencegah drag & drop file (opsional)
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => e.preventDefault());
 
@@ -336,7 +398,7 @@
     });
 
     // ==========================================================
-    // 🗑️ HAPUS SEMUA PESAN (dengan konfirmasi ganda)
+    // 🗑️ HAPUS SEMUA PESAN (konfirmasi ganda)
     // ==========================================================
     clearAllBtn.addEventListener('click', () => {
         if (!confirm('⚠️ Hapus SEMUA pesan di room ini?')) return;
@@ -356,7 +418,7 @@
     });
 
     // ==========================================================
-    // 😊 EMOJI PICKER (PILIHAN, BUKAN RANDOM)
+    // 😊 EMOJI PICKER (PILIHAN)
     // ==========================================================
     const emojiList = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻','✨','❤️‍🔥','💀','😈','👿','🤖','🎃','👽','🤗','🤩','🥳','🤪','🤫','🤭','🧐','🤨','😏','😌','😇','😺','😸','😻','😽','🙌','👋','🤚','🖐','✌','🤞','🤟','🤘','👌','🤏','🫶','💕','💗','💖','💘','💝','💞','💓'];
     emojiPicker.innerHTML = emojiList.map(emoji => `<span>${emoji}</span>`).join('');
@@ -366,14 +428,12 @@
         emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
     });
 
-    // Click outside to close emoji picker
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.style.display = 'none';
         }
     });
 
-    // Insert emoji to input
     emojiPicker.querySelectorAll('span').forEach(el => {
         el.addEventListener('click', () => {
             messageInput.value += el.textContent;
@@ -426,7 +486,7 @@
 
             let content = `<div class="sender">${data.name}</div>`;
             if (data.type === 'image') {
-                content += `<img src="${data.url}" alt="Foto">`;
+                content += `<img src="${data.url}" alt="Foto" class="chat-image" data-imgurl="${data.url}">`;
             } else {
                 content += `<div class="text">${data.text}</div>`;
             }
@@ -439,6 +499,16 @@
             bubble.innerHTML = content;
             messagesArea.appendChild(bubble);
             scrollToBottom();
+
+            // 📸 Klik foto -> buka di tab baru
+            if (data.type === 'image') {
+                const img = bubble.querySelector('.chat-image');
+                if (img) {
+                    img.addEventListener('click', function() {
+                        window.open(this.dataset.imgurl, '_blank');
+                    });
+                }
+            }
 
             if (isSelf) {
                 const delBtn = bubble.querySelector('.delete-btn');
@@ -478,6 +548,7 @@
             });
         });
 
+        // ✏️ TYPING INDICATOR REAL TIME (lebih cepat)
         typingRef.on('value', (snap) => {
             const data = snap.val();
             if (!data) {
@@ -493,6 +564,7 @@
             }
         });
 
+        // DETECT TYPING (langsung update ke database)
         let typingTimeout = null;
         messageInput.addEventListener('input', () => {
             const update = {};
@@ -500,11 +572,12 @@
             typingRef.update(update);
 
             clearTimeout(typingTimeout);
+            // Lebih cepat hilang (1 detik) agar realtime
             typingTimeout = setTimeout(() => {
                 const remove = {};
                 remove[currentUser.name] = null;
                 typingRef.update(remove);
-            }, 1500);
+            }, 1000);
         });
 
         sendBtn.addEventListener('click', sendMessage);
@@ -539,10 +612,7 @@
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 const base64 = ev.target.result;
-                if (base64.length > 500000) {
-                    alert('Foto terlalu besar! Maksimal 500KB (base64).');
-                    return;
-                }
+                // ✅ TIDAK ADA BATASAN UKURAN FOTO
                 messagesRef.push({
                     name: currentUser.name,
                     type: 'image',
@@ -556,10 +626,10 @@
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 statusDisplay.textContent = '● Online';
-                statusDisplay.style.color = '#b1f0b1';
+                statusDisplay.style.color = '#00e5ff';
             } else {
                 statusDisplay.textContent = '● Mengulang koneksi...';
-                statusDisplay.style.color = '#ffb347';
+                statusDisplay.style.color = '#ff5e5e';
             }
         });
 
