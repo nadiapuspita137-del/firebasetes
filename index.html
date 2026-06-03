@@ -32,7 +32,10 @@ apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+console.log("Firebase aktif");
+console.log(app);
+console.log(db);
+  
 window.kirim = async () => {
 
   console.log("Tombol diklik");
