@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Live Chat Pro</title>
+    <title>💬 Chat Pro (Tanpa Storage)</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
-        body { background:#0b141a; height:100vh; display:flex; align-items:center; justify-content:center; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, sans-serif; }
+        body { background:#0b141a; height:100vh; display:flex; justify-content:center; align-items:center; }
 
         /* LOGIN */
         #loginPage {
             background:#fff; padding:40px 30px; border-radius:20px; width:100%; max-width:400px;
             text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);
         }
-        #loginPage h1 { font-size:1.8rem; color:#075e54; }
+        #loginPage h1 { color:#075e54; margin-bottom:10px; }
         #loginPage p { color:#666; margin-bottom:20px; }
         .input-group { text-align:left; margin-bottom:12px; }
-        .input-group label { font-weight:600; font-size:0.85rem; display:block; margin-bottom:3px; }
-        .input-group input { width:100%; padding:12px; border:2px solid #ddd; border-radius:10px; font-size:1rem; }
-        .input-group input:focus { outline:none; border-color:#075e54; }
-        #loginBtn { width:100%; background:#075e54; color:white; border:none; padding:14px; border-radius:10px; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:10px; }
+        .input-group label { font-weight:600; display:block; margin-bottom:3px; }
+        .input-group input { width:100%; padding:12px; border:2px solid #ddd; border-radius:10px; }
+        .input-group input:focus { border-color:#075e54; outline:none; }
+        #loginBtn { width:100%; background:#075e54; color:#fff; border:none; padding:14px; border-radius:10px; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:8px; }
         #loginBtn:hover { background:#064a42; }
-        #loginError { color:#d32f2f; font-size:0.85rem; margin-top:10px; display:none; }
+        #loginError { color:#d32f2f; font-size:0.85rem; display:none; margin-top:8px; }
 
-        /* CHAT APP */
+        /* CHAT */
         #chatApp { display:none; width:100%; max-width:480px; height:90vh; background:#efeae2; border-radius:25px; overflow:hidden; flex-direction:column; box-shadow:0 0 40px rgba(0,0,0,0.3); }
 
         /* HEADER */
         #chatHeader {
-            background:#075e54; color:white; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+            background:#075e54; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
             flex-wrap:wrap; gap:5px;
         }
         .header-left { display:flex; flex-direction:column; }
@@ -36,9 +36,9 @@
         .room-status { font-size:0.7rem; opacity:0.8; display:flex; align-items:center; gap:5px; }
         .online-count { background:rgba(255,255,255,0.2); padding:2px 10px; border-radius:20px; font-size:0.75rem; }
         .header-right { display:flex; gap:8px; align-items:center; }
-        #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:5px 12px; border-radius:20px; cursor:pointer; font-size:0.8rem; }
+        #logoutBtn { background:rgba(255,255,255,0.2); border:none; color:white; padding:5px 12px; border-radius:20px; cursor:pointer; }
 
-        /* MESSAGES AREA */
+        /* MESSAGES */
         #messagesArea {
             flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:4px;
             background:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') repeat;
@@ -50,36 +50,32 @@
 
         /* BUBBLE */
         .bubble {
-            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:10px; position:relative;
-            word-wrap:break-word; box-shadow:0 1px 2px rgba(0,0,0,0.1); animation:fade 0.2s;
+            max-width:85%; width:fit-content; padding:8px 12px 5px; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.1); 
+            animation:fade 0.2s; position:relative;
         }
-        @keyframes fade { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
+        @keyframes fade { from{opacity:0;transform:scale(0.9);} to{opacity:1;transform:scale(1);} }
         .bubble.self { align-self:flex-end; background:#dcf8c6; border-top-right-radius:2px; }
         .bubble.other { align-self:flex-start; background:white; border-top-left-radius:2px; }
         .bubble .sender { font-size:0.7rem; font-weight:600; color:#075e54; }
         .bubble .text { font-size:0.95rem; color:#111; margin:2px 0; }
         .bubble .time { font-size:0.6rem; color:#888; text-align:right; margin-top:2px; }
-        .bubble img { max-width:200px; max-height:200px; border-radius:8px; margin-top:4px; display:block; }
 
-        /* DELETE BUTTON (hanya pada pesan sendiri) */
+        /* HAPUS PESAN */
         .bubble.self .delete-btn {
             display:none; position:absolute; top:-6px; right:-6px; background:#d32f2f; color:white;
             border:none; border-radius:50%; width:20px; height:20px; font-size:0.6rem; cursor:pointer;
-            box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:0.2s;
+            box-shadow:0 1px 3px rgba(0,0,0,0.2);
         }
         .bubble.self:hover .delete-btn { display:block; }
-        .bubble.self .delete-btn:hover { transform:scale(1.2); background:#b71c1c; }
 
-        /* SYSTEM MESSAGE */
+        /* FOTO BASE64 */
+        .bubble img { max-width:200px; max-height:200px; border-radius:8px; margin-top:4px; display:block; }
+
+        /* SYSTEM & TYPING */
         .system-msg { text-align:center; font-size:0.75rem; color:#888; padding:4px 0; }
+        #typingIndicator { text-align:center; font-size:0.75rem; color:#075e54; font-style:italic; padding:2px 0; display:none; }
 
-        /* TYPING INDICATOR */
-        #typingIndicator {
-            text-align:center; font-size:0.75rem; color:#075e54; font-style:italic; padding:2px 0;
-            display:none; transition: 0.2s;
-        }
-
-        /* INPUT PANEL */
+        /* INPUT */
         #inputPanel {
             background:#f0f0f0; padding:8px 10px; display:flex; align-items:center; gap:6px;
         }
@@ -90,16 +86,13 @@
         .tool-btn {
             background:transparent; border:none; font-size:1.4rem; cursor:pointer; padding:4px;
             border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center;
-            transition:0.2s;
         }
         .tool-btn:hover { background:rgba(0,0,0,0.05); }
         #sendBtn {
             background:#075e54; color:white; border:none; border-radius:50%; width:45px; height:45px;
-            font-size:1.2rem; cursor:pointer; transition:0.2s;
+            font-size:1.2rem; cursor:pointer;
         }
         #sendBtn:hover { background:#064a42; }
-
-        /* hidden file input */
         #fileInput { display:none; }
     </style>
 </head>
@@ -107,8 +100,8 @@
 
 <!-- LOGIN -->
 <div id="loginPage">
-    <h1>💬 Live Chat Pro</h1>
-    <p>Masukkan nama & kode room.</p>
+    <h1>💬 Chat Pro</h1>
+    <p>Masukkan nama & kode room (gratis)</p>
     <div class="input-group">
         <label>👤 Nama</label>
         <input type="text" id="inputName" placeholder="Contoh: Andi">
@@ -127,7 +120,7 @@
         <div class="header-left">
             <div class="room-name">📍 Room: <span id="roomNameDisplay">-</span></div>
             <div class="room-status">
-                <span id="statusDisplay">● Tersambung</span>
+                <span id="statusDisplay">● Online</span>
                 <span class="online-count">👥 <span id="onlineCount">0</span> online</span>
             </div>
         </div>
@@ -142,17 +135,16 @@
 
     <div id="inputPanel">
         <button class="tool-btn" id="emojiBtn" title="Emoji">😊</button>
-        <button class="tool-btn" id="photoBtn" title="Kirim Foto">📷</button>
+        <button class="tool-btn" id="photoBtn" title="Kirim Foto (Base64)">📷</button>
         <input type="file" id="fileInput" accept="image/*">
         <input type="text" id="messageInput" placeholder="Ketik pesan...">
         <button id="sendBtn">➤</button>
     </div>
 </div>
 
-<!-- FIREBASE SDK -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
 <script>
     // ==========================================================
@@ -170,43 +162,31 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const storage = firebase.storage();
 
     // ==========================================================
-    // 🎯 KODE ROOM RAHASIA (GANTI SESUKA ADMIN)
+    // 🎯 KODE ROOM (Ganti sesuai keinginan)
     // ==========================================================
     const ROOM_CODE = "Rahasia123";
 
     // ==========================================================
-    // 🎵 NOTIFIKASI SUARA
+    // 🔔 NOTIFIKASI SUARA
     // ==========================================================
     function playNotification() {
         try {
             const audio = new Audio('notif.mp3');
-            audio.play().catch(() => {
-                // Fallback beep
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.frequency.value = 880; osc.type = 'sine';
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
-            });
+            audio.play().catch(() => { /* beep fallback pakai web audio */ });
         } catch(e) {}
     }
 
     // ==========================================================
-    // 💾 VARIABEL GLOBAL
+    // 💾 GLOBAL VARIABLES
     // ==========================================================
     let currentUser = { name: '', roomId: '' };
     let messagesRef = null;
     let presenceRef = null;
     let typingRef = null;
-    let onlineCountRef = null;
 
-    // DOM
+    // DOM elements
     const loginPage = document.getElementById('loginPage');
     const chatApp = document.getElementById('chatApp');
     const inputName = document.getElementById('inputName');
@@ -231,8 +211,16 @@
     loginBtn.addEventListener('click', () => {
         const name = inputName.value.trim();
         const code = inputRoomCode.value.trim();
-        if (!name || !code) { loginError.textContent = 'Nama & kode wajib diisi!'; loginError.style.display = 'block'; return; }
-        if (code !== ROOM_CODE) { loginError.textContent = 'Kode room salah!'; loginError.style.display = 'block'; return; }
+        if (!name || !code) {
+            loginError.textContent = 'Nama dan kode wajib diisi!';
+            loginError.style.display = 'block';
+            return;
+        }
+        if (code !== ROOM_CODE) {
+            loginError.textContent = 'Kode room salah!';
+            loginError.style.display = 'block';
+            return;
+        }
         loginError.style.display = 'none';
 
         currentUser.name = name;
@@ -262,7 +250,7 @@
     // 🚪 LOGOUT
     // ==========================================================
     logoutBtn.addEventListener('click', () => {
-        if (presenceRef) { presenceRef.remove(); presenceRef.onDisconnect().cancel(); }
+        if (presenceRef) presenceRef.remove();
         if (messagesRef) messagesRef.off();
         if (typingRef) typingRef.off();
         localStorage.removeItem('chat_user');
@@ -281,16 +269,15 @@
         messagesRef = db.ref(`${roomNode}/messages`);
         presenceRef = db.ref(`${roomNode}/presence/${currentUser.name}`);
         typingRef = db.ref(`${roomNode}/typing`);
-        onlineCountRef = db.ref(`${roomNode}/presence`);
 
         // Bersihkan area
         messagesArea.innerHTML = `<div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>`;
 
-        // 1. Set user ONLINE
+        // Set user ONLINE
         presenceRef.set(true);
         presenceRef.onDisconnect().remove();
 
-        // 2. Join notification (system)
+        // Join notification
         messagesRef.push({
             name: 'System',
             text: `🟢 ${currentUser.name} telah bergabung`,
@@ -298,14 +285,14 @@
             type: 'system'
         });
 
-        // 3. Listener messages
+        // LISTENER MESSAGES
         messagesRef.orderByChild('timestamp').on('child_added', (snap) => {
             const data = snap.val();
             if (!data) return;
             const msgId = snap.key;
             if (document.querySelector(`[data-id="${msgId}"]`)) return;
 
-            // System message
+            // System
             if (data.type === 'system') {
                 const div = document.createElement('div');
                 div.className = 'system-msg';
@@ -329,7 +316,7 @@
             }
             content += `<div class="time">${formatTime(data.timestamp)}</div>`;
 
-            // Tombol hapus hanya untuk pesan sendiri
+            // Tombol hapus (hanya pesan sendiri)
             if (isSelf) {
                 content += `<button class="delete-btn" data-msgid="${msgId}">✕</button>`;
             }
@@ -341,36 +328,35 @@
             // Event delete
             if (isSelf) {
                 const delBtn = bubble.querySelector('.delete-btn');
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (confirm('Hapus pesan ini?')) {
-                        messagesRef.child(msgId).remove();
-                    }
-                });
+                if (delBtn) {
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('Hapus pesan ini?')) {
+                            messagesRef.child(msgId).remove();
+                        }
+                    });
+                }
             }
 
-            // Notifikasi suara untuk pesan orang lain
+            // Notifikasi suara (pesan orang lain)
             if (!isSelf) playNotification();
         });
 
-        // 4. Listener delete event (hapus dari DOM saat pesan dihapus)
+        // LISTENER DELETE
         messagesRef.on('child_removed', (snap) => {
             const el = document.querySelector(`[data-id="${snap.key}"]`);
             if (el) el.remove();
         });
 
-        // 5. Listener presence -> count user online
+        // USER COUNT (Online)
+        const onlineCountRef = db.ref(`${roomNode}/presence`);
         onlineCountRef.on('value', (snap) => {
             const val = snap.val();
-            let count = 0;
-            if (val) {
-                // Object key adalah nama user
-                count = Object.keys(val).length;
-            }
+            let count = val ? Object.keys(val).length : 0;
             onlineCount.textContent = count;
         });
 
-        // 6. Listener presence -> user leave notification
+        // LEAVE NOTIFICATION
         onlineCountRef.on('child_removed', (snap) => {
             const name = snap.key;
             if (name === currentUser.name) return;
@@ -382,7 +368,7 @@
             });
         });
 
-        // 7. Typing indicator (lebih alami)
+        // TYPING INDICATOR (ALAMI)
         typingRef.on('value', (snap) => {
             const data = snap.val();
             if (!data) {
@@ -391,18 +377,16 @@
             }
             const typingUsers = Object.keys(data).filter(key => key !== currentUser.name);
             if (typingUsers.length > 0) {
-                const names = typingUsers.join(', ');
-                typingIndicator.textContent = `✏️ ${names} sedang mengetik...`;
+                typingIndicator.textContent = `✏️ ${typingUsers.join(', ')} sedang mengetik...`;
                 typingIndicator.style.display = 'block';
             } else {
                 typingIndicator.style.display = 'none';
             }
         });
 
-        // 8. Input typing logic (natural)
+        // DETECT TYPING
         let typingTimeout = null;
         messageInput.addEventListener('input', () => {
-            // Kirim status typing
             const update = {};
             update[currentUser.name] = true;
             typingRef.update(update);
@@ -412,12 +396,14 @@
                 const remove = {};
                 remove[currentUser.name] = null;
                 typingRef.update(remove);
-            }, 1500); // lebih cepat hilang (1.5 detik)
+            }, 1500);
         });
 
-        // 9. Send text
+        // SEND TEXT
         sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
 
         function sendMessage() {
             const text = messageInput.value.trim();
@@ -429,38 +415,44 @@
                 type: 'text'
             });
             messageInput.value = '';
-            // Hapus typing status setelah kirim
+            // Hapus status typing
             const remove = {};
             remove[currentUser.name] = null;
             typingRef.update(remove);
         }
 
-        // ==========================================================
-        // 📷 UPLOAD FOTO (PAKAI FIREBASE STORAGE)
-        // ==========================================================
-     // Ganti bagian ini di fileInput listener
-const reader = new FileReader();
-reader.onload = async (e) => {
-    const base64 = e.target.result;
-    messagesRef.push({
-        name: currentUser.name,
-        type: 'image',
-        url: base64, // simpan base64 langsung
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
-};
-reader.readAsDataURL(file);
-        // ==========================================================
-        // 😊 EMOJI (fitur sederhana)
-        // ==========================================================
+        // 📷 UPLOAD FOTO (BASE64 - 100% GRATIS)
+        photoBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            e.target.value = '';
+
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                const base64 = ev.target.result;
+                messagesRef.push({
+                    name: currentUser.name,
+                    type: 'image',
+                    url: base64, // Langsung simpan base64 (tanpa storage)
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 😊 EMOJI
         emojiBtn.addEventListener('click', () => {
-            const emojis = ['😊', '😂', '❤️', '🔥', '👍', '🎉', '💀', '👀', '🤣', '😍', '🥰', '😎', '🤯', '🥺', '🤔', '🙏', '🤝', '💪', '👏', '🎊'];
+            const emojis = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻'];
             const pick = emojis[Math.floor(Math.random() * emojis.length)];
             messageInput.value += pick;
             messageInput.focus();
         });
 
-        // 10. Status koneksi
+        // STATUS KONEKSI
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 statusDisplay.textContent = '● Online';
@@ -471,7 +463,7 @@ reader.readAsDataURL(file);
             }
         });
 
-        // Helper
+        // HELPER
         function scrollToBottom() {
             setTimeout(() => {
                 messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -486,7 +478,7 @@ reader.readAsDataURL(file);
     }
 
     // ==========================================================
-    // ⚠️ DATABASE RULES (WAJIB DI SET DI FIREBASE CONSOLE)
+    // ✅ DATABASE RULES (WAJIB DI SET DI CONSOLE)
     // ==========================================================
     /*
     {
