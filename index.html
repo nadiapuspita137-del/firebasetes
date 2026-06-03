@@ -327,16 +327,16 @@
     // Cara dapatkan: masuk ke Firebase Console -> Project Settings -> General -> Your apps -> Firebase SDK snippet (pilih CDN)
     // Pastikan Realtime Database sudah diaktifkan (mode uji coba sementara: izinkan read/write)
     // Direkomendasikan aturan sementara untuk demo: { "rules": { ".read": true, ".write": true } }
-    const firebaseConfig = {
-        apiKey: ""AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",                // GANTI
-        authDomain: "cobaduluaja-54cd0.firebaseapp.com",        // GANTI
-        databaseURL: "https://chatroom-app-34746-default-rtdb.asia-southeast1.firebasedatabase.app/",
-        projectId: ""cobaduluaja-54cd0",          // GANTI
-        storageBucket: ""cobaduluaja-54cd0.firebasestorage.app",  // GANTI
-        messagingSenderId: "933990061547",   // GANTI
-        appId: "1:933990061547:web:6da9d8ac071bf11513b5ae",
-    measurementId: "G-0H75EVMMQE"                   // GANTI
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",       // Hapus satu tanda petik ("")
+    authDomain: "cobaduluaja-54cd0.firebaseapp.com",
+    databaseURL: "https://chatroom-app-34746-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "cobaduluaja-54cd0",                          // Hapus satu tanda petik ("")
+    storageBucket: "cobaduluaja-54cd0.firebasestorage.app",  // Hapus satu tanda petik ("")
+    messagingSenderId: "933990061547",
+    appId: "1:933990061547:web:6da9d8ac071bf11513b5ae",
+    measurementId: "G-0H75EVMMQE"
+};
 
     // Inisialisasi Firebase (hanya jika belum diinisialisasi)
     if (!firebase.apps.length) {
