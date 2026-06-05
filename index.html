@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayah kau Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ayah kau Chat - Auto Reset</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -203,11 +203,18 @@
         }
         #emojiPicker::-webkit-scrollbar { width:4px; }
         #emojiPicker::-webkit-scrollbar-thumb { background:#d4af37; border-radius:4px; }
+        
+        /* warning reset */
+        .auto-reset-warning {
+            position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+            background:#d4af37dd; color:#0a080e; font-size:0.7rem; padding:4px 12px;
+            border-radius:20px; z-index:200; backdrop-filter:blur(4px);
+            pointer-events:none; font-weight:bold;
+        }
     </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage">
     <h1>Samakan Aja Blay</h1>
     <p>Masukkan nama & kode room</p>
@@ -223,7 +230,6 @@
     <div id="loginError">Kode room salah!</div>
 </div>
 
-<!-- CHAT APP -->
 <div id="chatApp">
     <div id="chatHeader">
         <div class="header-left">
@@ -238,11 +244,9 @@
             <button id="logoutBtn">Keluar</button>
         </div>
     </div>
-
     <div id="messagesArea">
         <div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>
     </div>
-
     <div id="inputPanel">
         <button class="tool-btn" id="emojiBtn" title="Emoji">😊</button>
         <button class="tool-btn" id="photoBtn" title="Kirim Foto">📷</button>
@@ -252,14 +256,14 @@
         <div id="emojiPicker"></div>
     </div>
 </div>
+<div class="auto-reset-warning" id="resetWarning">⏳ Auto reset jika 10 menit tanpa pesan</div>
 
-<!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
     // ==========================================================
-    // 🔥 KONFIGURASI FIREBASE (SESUAIKAN DENGAN PROJECT KAMU)
+    // 🔥 KONFIGURASI FIREBASE 
     // ==========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",
@@ -274,39 +278,17 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ==========================================================
-    // 🎯 KODE ROOM (GANTI SESUKA ANDA)
-    // ==========================================================
     const ROOM_CODE = "MIMOME";
+    const IDLE_RESET_MINUTES = 10; // 10 menit idle reset
 
-    // ==========================================================
-    // 🔔 NOTIFIKASI SUARA (notif.mp3 harus ada di folder)
-    // ==========================================================
-    function playNotification() {
-        try {
-            const audio = new Audio('notif.mp3');
-            audio.play().catch(() => {
-                // fallback beep
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.frequency.value = 880; osc.type = 'sine';
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
-            });
-        } catch(e) {}
-    }
-
-    // ==========================================================
-    // 💾 GLOBAL VARIABLES
-    // ==========================================================
     let currentUser = { name: '', roomId: '' };
     let messagesRef = null;
     let presenceRef = null;
     let typingRef = null;
-
+    let lastActivityRef = null;       // untuk track last message timestamp dari server
+    let resetTimeoutId = null;        // timeout lokal untuk logout paksa
+    let isResetting = false;           // cegah double reset
+    
     // DOM
     const loginPage = document.getElementById('loginPage');
     const chatApp = document.getElementById('chatApp');
@@ -327,10 +309,17 @@
     const fileInput = document.getElementById('fileInput');
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
-
-    // ==========================================================
-    // 🛡️ PROTECTION: DISABLE INSPECT + CTRL+U + F12
-    // ==========================================================
+    const resetWarningSpan = document.getElementById('resetWarning');
+    
+    // Notifikasi suara
+    function playNotification() {
+        try {
+            const audio = new Audio('notif.mp3');
+            audio.play().catch(() => {});
+        } catch(e) {}
+    }
+    
+    // Proteksi inspect
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
@@ -339,11 +328,100 @@
             e.preventDefault();
         }
     });
-    document.addEventListener('dragover', e => e.preventDefault());
-    document.addEventListener('drop', e => e.preventDefault());
-
+    
+    // ======================= FUNGSI RESET OTOMATIS =======================
+    // Fungsi untuk menghapus semua chat dan logout paksa serta hapus data dari firebase
+    async function performAutoReset() {
+        if (isResetting) return;
+        if (!currentUser.name || !messagesRef) return;
+        isResetting = true;
+        
+        console.log("Auto reset due to 10 minutes inactivity");
+        // Tampilkan notifikasi sistem
+        try {
+            await messagesRef.push({
+                name: 'System',
+                text: `⚠️ TIDAK ADA AKTIVITAS SELAMA ${IDLE_RESET_MINUTES} MENIT. SEMUA PESAN DIHAPUS DAN AKAN LOGOUT OTOMATIS.`,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                type: 'system'
+            });
+            // kasih jeda sebentar biar notif kebaca
+            await new Promise(r => setTimeout(r, 800));
+            // Hapus semua pesan di room ini
+            await messagesRef.remove();
+            // Kirim pesan final
+            await messagesRef.push({
+                name: 'System',
+                text: `🧹 Auto reset: Ruang dibersihkan karena tidak ada percakapan selama ${IDLE_RESET_MINUTES} menit. Anda akan logout.`,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                type: 'system'
+            });
+        } catch(e) { console.warn(e); }
+        
+        // setelah bersih, lakukan logout paksa untuk user saat ini
+        await forceLogoutAndClean();
+    }
+    
+    // fungsi logout paksa dan hapus presence
+    async function forceLogoutAndClean() {
+        if (presenceRef) {
+            try { await presenceRef.remove(); } catch(e) {}
+        }
+        if (messagesRef) messagesRef.off();
+        if (typingRef) typingRef.off();
+        if (lastActivityRef) lastActivityRef.off();
+        
+        // hapus local storage
+        localStorage.removeItem('chat_user');
+        // reset UI
+        chatApp.style.display = 'none';
+        loginPage.style.display = 'block';
+        messagesArea.innerHTML = `<div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>`;
+        if(statusDisplay) statusDisplay.textContent = '● Terputus';
+        if(onlineCount) onlineCount.textContent = '0';
+        
+        // reset timer lokal
+        if (resetTimeoutId) clearTimeout(resetTimeoutId);
+        resetTimeoutId = null;
+        isResetting = false;
+        currentUser = { name: '', roomId: '' };
+        // tampilkan pesan di login error (optional)
+        const errDiv = document.getElementById('loginError');
+        errDiv.textContent = `⚠️ Sesi berakhir karena ${IDLE_RESET_MINUTES} menit tidak ada percakapan. Login ulang.`;
+        errDiv.style.display = 'block';
+        setTimeout(() => { if(errDiv) errDiv.style.display = 'none'; }, 4000);
+    }
+    
+    // Fungsi untuk me-reset timer idle (setiap ada pesan / aktivitas)
+    function resetIdleTimer() {
+        if (!currentUser.name || !messagesRef) return;
+        if (resetTimeoutId) clearTimeout(resetTimeoutId);
+        // Set timer baru: setelah 10 menit (600000 ms) jalankan reset
+        resetTimeoutId = setTimeout(() => {
+            performAutoReset();
+        }, IDLE_RESET_MINUTES * 60 * 1000);
+        
+        // update warning text biar keliatan countdown? optional: tampilkan detik (tidak perlu ribet)
+        if(resetWarningSpan) resetWarningSpan.style.opacity = '1';
+    }
+    
+    // Memantau aktivitas chat: ketika ada pesan baru (dari siapapun) reset timer
+    function startActivityWatcher() {
+        if (!messagesRef) return;
+        // Listener untuk child_added: setiap ada pesan baru (dari user atau sistem) reset timer
+        const onNewMessage = (snap) => {
+            // abaikan jika sedang dalam proses reset
+            if (isResetting) return;
+            // Reset idle timer karena ada percakapan
+            resetIdleTimer();
+        };
+        messagesRef.on('child_added', onNewMessage);
+        // simpan fungsi off nanti saat logout
+        return () => messagesRef.off('child_added', onNewMessage);
+    }
+    
     // ==========================================================
-    // 🔐 LOGIN
+    // LOGIN
     // ==========================================================
     loginBtn.addEventListener('click', () => {
         const name = inputName.value.trim();
@@ -359,17 +437,14 @@
             return;
         }
         loginError.style.display = 'none';
-
         currentUser.name = name;
         currentUser.roomId = code;
         localStorage.setItem('chat_user', JSON.stringify(currentUser));
-
         loginPage.style.display = 'none';
         chatApp.style.display = 'flex';
         startChat();
     });
-
-    // Auto login
+    
     const saved = localStorage.getItem('chat_user');
     if (saved) {
         try {
@@ -382,59 +457,48 @@
             } else localStorage.removeItem('chat_user');
         } catch(e) { localStorage.removeItem('chat_user'); }
     }
-
-    // ==========================================================
-    // 🚪 LOGOUT
-    // ==========================================================
-    logoutBtn.addEventListener('click', () => {
-        if (presenceRef) presenceRef.remove();
+    
+    // LOGOUT manual
+    logoutBtn.addEventListener('click', async () => {
+        if (presenceRef) await presenceRef.remove().catch(()=>{});
         if (messagesRef) messagesRef.off();
         if (typingRef) typingRef.off();
+        if (lastActivityRef) lastActivityRef.off();
+        if (resetTimeoutId) clearTimeout(resetTimeoutId);
         localStorage.removeItem('chat_user');
         chatApp.style.display = 'none';
         loginPage.style.display = 'block';
         messagesArea.innerHTML = `<div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>`;
         statusDisplay.textContent = '● Terputus';
         onlineCount.textContent = '0';
+        isResetting = false;
+        currentUser = { name: '', roomId: '' };
     });
-
-    // ==========================================================
-    // 🗑️ HAPUS SEMUA PESAN (konfirmasi ganda)
-    // ==========================================================
-    clearAllBtn.addEventListener('click', () => {
+    
+    // Clear all manual (tetap resetkan timer karena ada interaksi)
+    clearAllBtn.addEventListener('click', async () => {
         if (!confirm('⚠️ Hapus SEMUA pesan di room ini?')) return;
         if (!confirm('Yakin? Data akan hilang permanen!')) return;
-        messagesRef.remove()
-            .then(() => {
-                messagesRef.push({
-                    name: 'System',
-                    text: `🧹 Semua pesan telah dihapus oleh ${currentUser.name}`,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    type: 'system'
-                });
-            })
-            .catch(err => {
-                alert('Gagal menghapus: ' + err.message);
-            });
+        await messagesRef.remove().catch(err => alert('Gagal: '+err.message));
+        await messagesRef.push({
+            name: 'System',
+            text: `🧹 Semua pesan dihapus oleh ${currentUser.name}`,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            type: 'system'
+        });
+        resetIdleTimer(); // reset timer karena ada aktivitas manual
     });
-
-    // ==========================================================
-    // 😊 EMOJI PICKER (PILIHAN)
-    // ==========================================================
+    
+    // ======================= EMOJI =======================
     const emojiList = ['😊','😂','❤️','🔥','👍','🎉','💀','👀','🤣','😍','🥰','😎','🤯','🥺','🤔','🙏','🤝','💪','👏','🎊','💯','😭','😱','🤡','👻','✨','❤️‍🔥','💀','😈','👿','🤖','🎃','👽','🤗','🤩','🥳','🤪','🤫','🤭','🧐','🤨','😏','😌','😇','😺','😸','😻','😽','🙌','👋','🤚','🖐','✌','🤞','🤟','🤘','👌','🤏','🫶','💕','💗','💖','💘','💝','💞','💓'];
-    emojiPicker.innerHTML = emojiList.map(emoji => `<span>${emoji}</span>`).join('');
-
+    emojiPicker.innerHTML = emojiList.map(e => `<span>${e}</span>`).join('');
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
     });
-
     document.addEventListener('click', (e) => {
-        if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-            emojiPicker.style.display = 'none';
-        }
+        if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) emojiPicker.style.display = 'none';
     });
-
     emojiPicker.querySelectorAll('span').forEach(el => {
         el.addEventListener('click', () => {
             messageInput.value += el.textContent;
@@ -442,34 +506,36 @@
             emojiPicker.style.display = 'none';
         });
     });
-
-    // ==========================================================
-    // 💬 START CHAT
-    // ==========================================================
+    
+    // ======================= START CHAT =======================
     function startChat() {
         const roomNode = `rooms/${ROOM_CODE}`;
         messagesRef = db.ref(`${roomNode}/messages`);
         presenceRef = db.ref(`${roomNode}/presence/${currentUser.name}`);
         typingRef = db.ref(`${roomNode}/typing`);
-
+        // lastActivity untuk info (opsional)
+        lastActivityRef = db.ref(`${roomNode}/lastActivity`);
+        
         messagesArea.innerHTML = `<div id="typingIndicator">✏️ Seseorang sedang mengetik...</div>`;
-
         presenceRef.set(true);
         presenceRef.onDisconnect().remove();
-
+        
+        // Pesan join
         messagesRef.push({
             name: 'System',
             text: `🟢 ${currentUser.name} telah bergabung`,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             type: 'system'
+        }).then(() => {
+            resetIdleTimer(); // setelah join, mulai timer idle 10 menit
         });
-
+        
+        // Listener pesan
         messagesRef.orderByChild('timestamp').on('child_added', (snap) => {
             const data = snap.val();
             if (!data) return;
             const msgId = snap.key;
             if (document.querySelector(`[data-id="${msgId}"]`)) return;
-
             if (data.type === 'system') {
                 const div = document.createElement('div');
                 div.className = 'system-msg';
@@ -479,65 +545,46 @@
                 scrollToBottom();
                 return;
             }
-
             const isSelf = (data.name === currentUser.name);
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isSelf ? 'self' : 'other'}`;
             bubble.setAttribute('data-id', msgId);
-
-            let content = `<div class="sender">${data.name}</div>`;
+            let content = `<div class="sender">${escapeHtml(data.name)}</div>`;
             if (data.type === 'image') {
                 content += `<img src="${data.url}" alt="Foto" class="chat-image" data-imgurl="${data.url}">`;
             } else {
-                content += `<div class="text">${data.text}</div>`;
+                content += `<div class="text">${escapeHtml(data.text)}</div>`;
             }
             content += `<div class="time">${formatTime(data.timestamp)}</div>`;
-
-            if (isSelf) {
-                content += `<button class="delete-btn" data-msgid="${msgId}">✕</button>`;
-            }
-
+            if (isSelf) content += `<button class="delete-btn" data-msgid="${msgId}">✕</button>`;
             bubble.innerHTML = content;
             messagesArea.appendChild(bubble);
             scrollToBottom();
-
-            // 📸 Klik foto -> buka di tab baru
             if (data.type === 'image') {
                 const img = bubble.querySelector('.chat-image');
-                if (img) {
-                    img.addEventListener('click', function() {
-                        window.open(this.dataset.imgurl, '_blank');
-                    });
-                }
+                if(img) img.addEventListener('click', function() { window.open(this.dataset.imgurl, '_blank'); });
             }
-
             if (isSelf) {
                 const delBtn = bubble.querySelector('.delete-btn');
-                if (delBtn) {
-                    delBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (confirm('Hapus pesan ini?')) {
-                            messagesRef.child(msgId).remove();
-                        }
-                    });
-                }
+                if(delBtn) delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if(confirm('Hapus pesan ini?')) messagesRef.child(msgId).remove();
+                });
             }
-
             if (!isSelf) playNotification();
         });
-
+        
         messagesRef.on('child_removed', (snap) => {
             const el = document.querySelector(`[data-id="${snap.key}"]`);
-            if (el) el.remove();
+            if(el) el.remove();
         });
-
+        
         const onlineCountRef = db.ref(`${roomNode}/presence`);
         onlineCountRef.on('value', (snap) => {
             const val = snap.val();
             let count = val ? Object.keys(val).length : 0;
             onlineCount.textContent = count;
         });
-
         onlineCountRef.on('child_removed', (snap) => {
             const name = snap.key;
             if (name === currentUser.name) return;
@@ -548,45 +595,32 @@
                 type: 'system'
             });
         });
-
-        // ✏️ TYPING INDICATOR REAL TIME (lebih cepat)
+        
+        // Typing indicator
         typingRef.on('value', (snap) => {
             const data = snap.val();
-            if (!data) {
-                typingIndicator.style.display = 'none';
-                return;
-            }
-            const typingUsers = Object.keys(data).filter(key => key !== currentUser.name);
+            if (!data) { typingIndicator.style.display = 'none'; return; }
+            const typingUsers = Object.keys(data).filter(k => k !== currentUser.name);
             if (typingUsers.length > 0) {
                 typingIndicator.textContent = `✏️ ${typingUsers.join(', ')} sedang mengetik...`;
                 typingIndicator.style.display = 'block';
-            } else {
-                typingIndicator.style.display = 'none';
-            }
+            } else typingIndicator.style.display = 'none';
         });
-
-        // DETECT TYPING (langsung update ke database)
+        
         let typingTimeout = null;
         messageInput.addEventListener('input', () => {
-            const update = {};
-            update[currentUser.name] = true;
+            const update = {}; update[currentUser.name] = true;
             typingRef.update(update);
-
             clearTimeout(typingTimeout);
-            // Lebih cepat hilang (1 detik) agar realtime
             typingTimeout = setTimeout(() => {
-                const remove = {};
-                remove[currentUser.name] = null;
+                const remove = {}; remove[currentUser.name] = null;
                 typingRef.update(remove);
             }, 1000);
+            // setiap mengetik juga reset idle timer
+            resetIdleTimer();
         });
-
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        function sendMessage() {
+        
+        const sendMsg = () => {
             const text = messageInput.value.trim();
             if (!text) return;
             messagesRef.push({
@@ -596,34 +630,30 @@
                 type: 'text'
             });
             messageInput.value = '';
-            const remove = {};
-            remove[currentUser.name] = null;
+            const remove = {}; remove[currentUser.name] = null;
             typingRef.update(remove);
-        }
-
-        photoBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
+            resetIdleTimer(); // pesan terkirim reset timer
+        };
+        sendBtn.addEventListener('click', sendMsg);
+        messageInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMsg(); });
+        
+        photoBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
             e.target.value = '';
-
             const reader = new FileReader();
-            reader.onload = async (ev) => {
-                const base64 = ev.target.result;
-                // ✅ TIDAK ADA BATASAN UKURAN FOTO
+            reader.onload = (ev) => {
                 messagesRef.push({
                     name: currentUser.name,
                     type: 'image',
-                    url: base64,
+                    url: ev.target.result,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
+                }).then(() => resetIdleTimer());
             };
             reader.readAsDataURL(file);
         });
-
+        
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 statusDisplay.textContent = '● Online';
@@ -633,35 +663,35 @@
                 statusDisplay.style.color = '#ff5e5e';
             }
         });
-
-        function scrollToBottom() {
-            setTimeout(() => {
-                messagesArea.scrollTop = messagesArea.scrollHeight;
-            }, 50);
-        }
-
-        function formatTime(ts) {
-            if (!ts) return 'sekarang';
-            const d = new Date(ts);
-            return d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-        }
+        
+        // Aktifkan watcher aktivitas global (untuk reset timer saat pesan dari orang lain)
+        const unwatch = startActivityWatcher();
+        // Simpan fungsi cleanup tambahan
+        const originalClean = () => {
+            if(unwatch) unwatch();
+        };
+        // override logout sedikit
+        const oldLogout = logoutBtn.onclick;
+        logoutBtn.onclick = async () => {
+            if(unwatch) unwatch();
+            if (presenceRef) await presenceRef.remove();
+            if (messagesRef) messagesRef.off();
+            if (typingRef) typingRef.off();
+            if (resetTimeoutId) clearTimeout(resetTimeoutId);
+            localStorage.removeItem('chat_user');
+            chatApp.style.display = 'none';
+            loginPage.style.display = 'block';
+            isResetting = false;
+            currentUser = { name: '', roomId: '' };
+        };
+        
+        function scrollToBottom() { setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 50); }
+        function formatTime(ts) { if(!ts) return 'sekarang'; return new Date(ts).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }); }
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        
+        roomNameDisplay.textContent = ROOM_CODE;
+        resetIdleTimer(); // mulai timer idle saat chat dimulai
     }
-
-    // ==========================================================
-    // ✅ DATABASE RULES (WAJIB DI SET DI CONSOLE)
-    // ==========================================================
-    /*
-    {
-      "rules": {
-        "rooms": {
-          "$roomId": {
-            ".read": true,
-            ".write": true
-          }
-        }
-      }
-    }
-    */
 </script>
 </body>
 </html>
