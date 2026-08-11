@@ -15,6 +15,13 @@
       },
       "adminCodeHash": {
         ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+      },
+      "accounts": {
+        "$accountId": {
+          ".read": true,
+          ".write": true,
+          ".validate": "!newData.exists() || (newData.hasChildren(['accountId','username','usernameLower','roomId','passwordHash','salt','status']) && newData.child('accountId').val() === $accountId && newData.child('username').isString() && newData.child('username').val().length >= 3 && newData.child('username').val().length <= 24 && newData.child('passwordHash').val().matches(/^[a-f0-9]{64}$/) && newData.child('salt').val().matches(/^[a-f0-9]{32}$/) && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected'))"
+        }
       }
     },
     "rooms": {
