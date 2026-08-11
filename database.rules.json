@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "appConfig": {
+      ".read": true,
+      ".write": true,
+      "rooms": {
+        "$roomId": {
+          ".validate": "newData.hasChildren(['name', 'codeHash', 'active'])",
+          "name": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 40" },
+          "codeHash": { ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)" },
+          "active": { ".validate": "newData.isBoolean()" }
+        }
+      },
+      "adminCodeHash": {
+        ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+      }
+    },
+    "rooms": {
+      "$roomId": {
+        ".read": true,
+        ".write": true,
+        "messages": { ".indexOn": ["timestamp", "userId"] },
+        "users": { ".indexOn": ["lastSeen"] },
+        "presence": { ".indexOn": ["userId", "at"] }
+      }
+    }
+  }
+}
