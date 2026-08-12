@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#08061a">
   <title>Nusa Chat</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,13 +55,45 @@
       .login-shell{padding:12px}.login-card{padding:25px 18px;border-radius:20px}.login-card h1{font-size:26px}
     }
     @media(max-width:360px){.chat-header{min-height:100px}.header-actions .danger-btn{padding:0 8px}.messages{padding-left:8px;padding-right:8px}.composer{padding-left:6px;padding-right:6px}.compose-box .icon-btn{width:31px;height:31px;min-width:31px}.send{width:40px;min-width:40px}.account-tools{grid-template-columns:1fr}.account-tools input,.account-selection{grid-column:1}.admin-stats{grid-template-columns:1fr 1fr 1fr}.admin-stat span{font-size:8px}}
+
+    /* Y2K chrome skin — visual overrides only, application behavior stays intact */
+    :root{--bg:#050313;--panel:rgba(13,10,38,.82);--panel2:rgba(30,18,67,.78);--line:rgba(108,222,255,.28);--text:#fffaff;--muted:#b9acd0;--brand:#ff43d1;--brand2:#52e6ff;--success:#59ffc8;--danger:#ff4e91;--shadow:0 24px 70px rgba(0,0,0,.56),0 0 34px rgba(82,230,255,.08)}
+    body{background:radial-gradient(circle at 12% 12%,rgba(82,230,255,.2),transparent 30%),radial-gradient(circle at 88% 78%,rgba(255,67,209,.2),transparent 34%),linear-gradient(145deg,#03020d 0%,#0c0628 48%,#080317 100%);background-attachment:fixed}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.36;background-image:linear-gradient(rgba(82,230,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,67,209,.07) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.95),transparent 86%)}
+    body:after{content:"✦";position:fixed;right:3vw;top:8vh;pointer-events:none;color:#fff;font-size:clamp(44px,7vw,100px);filter:drop-shadow(0 0 8px #52e6ff) drop-shadow(0 0 24px #ff43d1);opacity:.15;animation:y2kFloat 7s ease-in-out infinite}
+    @keyframes y2kFloat{50%{transform:translateY(16px) rotate(8deg)}}
+    .ambient{background-image:radial-gradient(circle at 20% 25%,rgba(255,255,255,.7) 0 1px,transparent 2px),radial-gradient(circle at 70% 65%,rgba(82,230,255,.75) 0 1px,transparent 2px);background-size:82px 82px,113px 113px;mask-image:none}
+    .login-card,.sidebar,.chat,.admin-modal{border:1px solid rgba(171,236,255,.36);background:linear-gradient(145deg,rgba(18,14,48,.9),rgba(7,6,27,.88));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 26px 80px rgba(0,0,0,.6),0 0 30px rgba(82,230,255,.08);backdrop-filter:blur(24px) saturate(1.35)}
+    .login-card,.sidebar,.chat{position:relative}.login-card:before,.sidebar:before,.chat:before{content:"";position:absolute;z-index:2;pointer-events:none;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,#fff,#52e6ff,transparent)}
+    .brand-mark{overflow:hidden;padding:5px;border:1px solid rgba(255,255,255,.58);background:linear-gradient(145deg,#fff,#596274 42%,#f8f8ff 64%,#282737);box-shadow:inset 0 0 0 2px rgba(0,0,0,.28),0 0 18px rgba(82,230,255,.28),0 0 28px rgba(255,67,209,.16)}
+    .brand-mark img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 4px rgba(255,255,255,.65))}
+    .brand-copy strong,.login-card h1,.admin-head h2{background:linear-gradient(180deg,#fff 0%,#dffaff 38%,#8f9dad 55%,#fff 76%,#ff9bea 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 20px rgba(82,230,255,.18);letter-spacing:.02em}
+    .brand-copy span,.section-label{color:#89efff}.section-label{letter-spacing:2px;text-shadow:0 0 10px rgba(82,230,255,.55)}
+    .field input,.admin-card input,.admin-card select,.preview,.compose-box{border-color:rgba(128,223,255,.3);background:linear-gradient(180deg,rgba(4,3,18,.9),rgba(19,10,43,.88));box-shadow:inset 0 1px 7px rgba(0,0,0,.65),0 1px 0 rgba(255,255,255,.06)}
+    .field input:focus,.admin-card input:focus,.admin-card select:focus{border-color:#52e6ff;box-shadow:0 0 0 3px rgba(82,230,255,.12),0 0 18px rgba(255,67,209,.13)}
+    .primary,.send{color:#10051d;background:linear-gradient(180deg,#fff 0%,#8ff3ff 24%,#ff77dc 66%,#a14dff 100%);border:1px solid rgba(255,255,255,.75);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(44,0,78,.35),0 0 22px rgba(255,67,209,.3);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+    .primary:hover,.send:hover{filter:saturate(1.2) brightness(1.08);box-shadow:inset 0 1px 0 #fff,0 0 28px rgba(82,230,255,.4)}
+    .icon-btn,.auth-tabs,.auth-tab.active{border-color:rgba(156,227,255,.32);background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(32,19,70,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
+    .icon-btn:hover{border-color:#52e6ff;background:rgba(82,230,255,.12);box-shadow:0 0 16px rgba(82,230,255,.18)}
+    .room-card{border-color:rgba(126,230,255,.48);background:linear-gradient(135deg,rgba(82,230,255,.16),rgba(255,67,209,.15));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 20px rgba(82,230,255,.07)}
+    .room-card.active,.contact.active{border-color:#ff78dc;background:linear-gradient(135deg,rgba(255,67,209,.25),rgba(82,230,255,.16));box-shadow:0 0 18px rgba(255,67,209,.14)}
+    .room-avatar,.avatar,.mini-avatar,.welcome-icon{border:1px solid rgba(182,237,255,.32);background:linear-gradient(145deg,#384361,#171229 48%,#613566);box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+    .chat-header,.composer{background:linear-gradient(180deg,rgba(24,15,57,.94),rgba(7,5,25,.92));border-color:rgba(82,230,255,.2)}
+    .messages{background:radial-gradient(circle at 100% 0,rgba(255,67,209,.12),transparent 34%),radial-gradient(circle at 0 100%,rgba(82,230,255,.1),transparent 38%)}
+    .bubble{border-color:rgba(110,215,255,.24);background:linear-gradient(145deg,rgba(35,29,72,.95),rgba(18,15,42,.96));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 6px 16px rgba(0,0,0,.18)}
+    .self .bubble{color:#fff;background:linear-gradient(135deg,#783cff,#d43fc5 54%,#318cbd);border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 16px rgba(255,67,209,.16)}
+    .admin-card,.admin-stat,.member-item,.account-item{border-color:rgba(117,224,255,.23);background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,67,209,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+    .admin-head{background:linear-gradient(90deg,rgba(82,230,255,.1),rgba(255,67,209,.1)),#0d0928}.admin-nav button.active{background:linear-gradient(135deg,rgba(82,230,255,.2),rgba(255,67,209,.2));border-color:rgba(148,231,255,.45);color:#fff}
+    .status-chip.approved,.contact-dot.online,.online-dot{box-shadow:0 0 10px rgba(89,255,200,.85)}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(#52e6ff,#ff43d1)!important}
+    @media(max-width:760px){body:after{font-size:48px;right:5vw;top:12vh}.sidebar{background:linear-gradient(160deg,rgba(13,10,38,.98),rgba(5,4,21,.98));border-radius:0 24px 24px 0}.chat{border-radius:17px}.chat-header{background:linear-gradient(180deg,rgba(28,16,61,.98),rgba(8,6,27,.96))}.sidebar-backdrop{background:rgba(3,1,13,.72)}}
   </style>
 </head>
 <body>
 <div class="ambient"></div>
 <main id="loginPage" class="login-shell">
   <section class="login-card">
-    <div class="brand"><div class="brand-mark">✦</div><div class="brand-copy"><strong>Nusa Chat</strong><span>Private realtime space</span></div></div>
+    <div class="brand"><div class="brand-mark"><img src="favicon.png" alt="Nusa Chat"></div><div class="brand-copy"><strong>Nusa Chat</strong><span>Private realtime space</span></div></div>
     <h1>Ngobrol lebih dekat.</h1><p id="authIntro">Masuk memakai akun yang sudah disetujui admin.</p>
     <div class="auth-tabs"><button id="loginTab" class="auth-tab active" type="button">Masuk</button><button id="registerTab" class="auth-tab" type="button">Daftar akun</button></div>
     <form id="loginForm" novalidate>
@@ -77,7 +109,7 @@
 <main id="chatApp" class="app hidden">
   <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu"></button>
   <aside id="mobileSidebar" class="sidebar" aria-label="Navigasi chat">
-    <div class="brand"><div class="brand-mark">✦</div><div class="brand-copy"><strong>Nusa Chat</strong><span>Realtime messenger</span></div><button id="closeSidebarBtn" class="icon-btn sidebar-close" type="button" title="Tutup menu" aria-label="Tutup menu">×</button></div>
+    <div class="brand"><div class="brand-mark"><img src="favicon.png" alt="Nusa Chat"></div><div class="brand-copy"><strong>Nusa Chat</strong><span>Realtime messenger</span></div><button id="closeSidebarBtn" class="icon-btn sidebar-close" type="button" title="Tutup menu" aria-label="Tutup menu">×</button></div>
     <div class="section-label">RUANG AKTIF</div>
     <div id="roomGroupList"><div id="publicRoomCard" class="room-card"><div class="room-avatar">#</div><div class="room-meta"><strong>Ruang Umum</strong><small><span id="sideOnlineCount">0</span> anggota online</small></div></div></div><div class="section-label">PENGGUNA</div><div id="contactsList" class="contacts"><div class="contact-empty">Memuat data pengguna...</div></div>
     <div class="user-card"><div id="userAvatar" class="avatar">U</div><div class="user-info"><strong id="userName">Pengguna</strong><span>● Online</span></div><button class="icon-btn logout-action" title="Keluar" aria-label="Keluar">↪</button></div>
