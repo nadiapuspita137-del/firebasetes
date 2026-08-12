@@ -128,7 +128,7 @@ function formatTime(ts){return ts?new Date(ts).toLocaleTimeString('id-ID',{hour:
 function scrollBottom(){requestAnimationFrame(()=>{els.messages.scrollTop=els.messages.scrollHeight})}
 function listen(ref,event,handler){ref.on(event,handler);cleanup.push(()=>ref.off(event,handler))}
 function listenChat(ref,event,handler){ref.on(event,handler);chatCleanup.push(()=>ref.off(event,handler))}
-function userId(name){return encodeURIComponent(String(name||'').trim().toLowerCase())}
+function userId(name){return encodeURIComponent(String(name||'').trim().toLowerCase()).replace(/\./g,'%2E')}
 function privateThreadId(a,b){return [a,b].sort().map(v=>encodeURIComponent(v)).join('__')}
 function clearChatListeners(){chatCleanup.splice(0).forEach(fn=>{try{fn()}catch{}})}
 function resetIdle(){clearTimeout(idleTimer);if(user)idleTimer=setTimeout(()=>logout('Sesi berakhir karena ruang tidak aktif selama 10 menit.'),IDLE_MS)}
@@ -176,19 +176,28 @@ async function switchGroupRoom(id,name,active){if(id===currentRoomId)return open
 async function updateAdminCode(){if(!isAdmin())return;const current=$('currentAdminCode').value,next=$('newAdminCode').value,confirmCode=$('confirmAdminCode').value;if(!current)return showToast('Masukkan kode admin saat ini.');if(await sha256(current)!==await getAdminCodeHash())return showToast('Kode admin saat ini salah.');if(next.length<8)return showToast('Kode admin baru minimal 8 karakter.');if(next!==confirmCode)return showToast('Ulangi kode admin baru belum sama.');if(current===next)return showToast('Kode admin baru harus berbeda.');await db.ref('appConfig/adminCodeHash').set(await sha256(next));$('currentAdminCode').value='';$('newAdminCode').value='';$('confirmAdminCode').value='';addAdminLog('Mengganti kode rahasia admin setelah verifikasi');showToast('Kode admin berhasil diperbarui.')}
 async function createAccountFromAdmin(){
   if(!isAdmin())return showToast('Fitur ini hanya untuk admin.');
-  const username=$('adminNewUsername').value.trim(),password=$('adminNewPassword').value,confirmation=$('adminNewPasswordConfirm').value;
+  const button=$('createAccountBtn'),username=$('adminNewUsername').value.trim(),password=$('adminNewPassword').value,confirmation=$('adminNewPasswordConfirm').value;
   if(username.toLowerCase()===ADMIN_NAME)return showToast('Username admin tidak dapat dipakai.');
   if(!/^[A-Za-z0-9_.-]{3,24}$/.test(username))return showToast('Username 3–24 karakter: huruf, angka, titik, garis bawah, atau strip.');
   if(password.length<6)return showToast('Password minimal 6 karakter.');
   if(password!==confirmation)return showToast('Konfirmasi password tidak sama.');
-  const id=accountId(username),accountRef=db.ref('appConfig/accounts/'+id),existing=await accountRef.once('value');
-  if(existing.exists())return showToast('Username sudah terdaftar.');
-  const salt=makeSalt(),passwordHash=await hashPassword(password,salt);
-  await accountRef.set({accountId:id,username,usernameLower:username.toLowerCase(),roomId:currentRoomId,roomName:currentRoomName,passwordHash,salt,status:'approved',createdAt:firebase.database.ServerValue.TIMESTAMP,approvedAt:firebase.database.ServerValue.TIMESTAMP,approvedBy:user.name,createdByAdmin:true});
-  $('adminNewUsername').value='';$('adminNewPassword').value='';$('adminNewPasswordConfirm').value='';
-  addAdminLog('Membuat akun '+safeText(username));
-  showToast('Akun '+safeText(username)+' berhasil dibuat dan langsung aktif.');
-  await refreshAdminPanel();
+  button.disabled=true;button.textContent='Membuat...';
+  try{
+    const id=accountId(username),accountRef=db.ref('appConfig/accounts/'+id),existing=await accountRef.once('value');
+    if(existing.exists())return showToast('Username sudah terdaftar.');
+    const salt=makeSalt(),passwordHash=await hashPassword(password,salt);
+    await accountRef.set({accountId:id,username,usernameLower:username.toLowerCase(),roomId:currentRoomId,roomName:currentRoomName,passwordHash,salt,status:'approved',createdAt:firebase.database.ServerValue.TIMESTAMP,approvedAt:firebase.database.ServerValue.TIMESTAMP,approvedBy:user.name,createdByAdmin:true});
+    $('adminNewUsername').value='';$('adminNewPassword').value='';$('adminNewPasswordConfirm').value='';
+    addAdminLog('Membuat akun '+safeText(username));
+    showToast('Akun '+safeText(username)+' berhasil dibuat dan langsung aktif.');
+    await refreshAdminPanel();
+  }catch(err){
+    console.error('Gagal membuat akun dari panel admin:',err);
+    if(err?.code==='PERMISSION_DENIED')showToast('Firebase menolak pembuatan akun. Publish database.rules.json terbaru.');
+    else showToast('Akun gagal dibuat: '+safeText(err?.message||'kesalahan tidak diketahui'));
+  }finally{
+    button.disabled=false;button.textContent='Buat akun';
+  }
 }
 async function changeUserPassword(id,name){
   if(!isAdmin())return showToast('Fitur ini hanya untuk admin.');
