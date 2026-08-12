@@ -87,10 +87,30 @@
     .status-chip.approved,.contact-dot.online,.online-dot{box-shadow:0 0 10px rgba(89,255,200,.85)}
     ::-webkit-scrollbar-thumb{background:linear-gradient(#52e6ff,#ff43d1)!important}
     @media(max-width:760px){body:after{font-size:48px;right:5vw;top:12vh}.sidebar{background:linear-gradient(160deg,rgba(13,10,38,.98),rgba(5,4,21,.98));border-radius:0 24px 24px 0}.chat{border-radius:17px}.chat-header{background:linear-gradient(180deg,rgba(28,16,61,.98),rgba(8,6,27,.96))}.sidebar-backdrop{background:rgba(3,1,13,.72)}}
+    /* Lightweight interactive glitch ambience */
+    :root{--glitch-x:50vw;--glitch-y:42vh;--glitch-rx:0px;--glitch-ry:0px}
+    .glitch-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:strict}
+    .glitch-cursor{position:absolute;width:clamp(260px,42vw,620px);aspect-ratio:1;left:var(--glitch-x);top:var(--glitch-y);transform:translate(-50%,-50%);border-radius:50%;opacity:.2;background:radial-gradient(circle,rgba(82,230,255,.28) 0,rgba(255,67,209,.12) 28%,transparent 68%);filter:blur(12px);will-change:left,top}
+    .glitch-scan,.glitch-scan:before,.glitch-scan:after{position:absolute;left:-12%;width:124%;height:2px;content:"";background:linear-gradient(90deg,transparent 4%,rgba(82,230,255,.7) 26%,rgba(255,255,255,.88) 50%,rgba(255,67,209,.65) 73%,transparent 96%);box-shadow:0 0 12px rgba(82,230,255,.38);opacity:0;will-change:transform,opacity}
+    .glitch-scan{top:22%;animation:glitchSweep 9s steps(1,end) infinite}
+    .glitch-scan:before{top:31vh;transform:translateX(-7px);animation:glitchSweep 13s 2.5s steps(1,end) infinite}
+    .glitch-scan:after{top:58vh;height:1px;transform:translateX(8px);animation:glitchSweep 17s 5s steps(1,end) infinite}
+    .glitch-noise{position:absolute;inset:-40%;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");animation:noiseShift .75s steps(2,end) infinite;will-change:transform}
+    .glitch-shard{position:absolute;left:calc(var(--glitch-x) - 90px);top:calc(var(--glitch-y) - 24px);width:180px;height:48px;opacity:0;border:1px solid rgba(125,232,255,.22);background:linear-gradient(90deg,transparent,rgba(82,230,255,.1),rgba(255,67,209,.1),transparent);transform:translate(var(--glitch-rx),var(--glitch-ry)) skewX(-18deg);mix-blend-mode:screen}
+    .glitch-ambient.pulse .glitch-shard{animation:shardFlash .28s steps(2,end)}
+    .login-shell,.app{position:relative;z-index:1}
+    @keyframes glitchSweep{0%,88%,100%{opacity:0;transform:translateY(0) scaleX(.35)}89%{opacity:.2;transform:translateY(9vh) scaleX(.92)}90%{opacity:.75;transform:translateY(12vh) scaleX(.58)}91%{opacity:.1;transform:translateY(13vh) scaleX(1)}}
+    @keyframes noiseShift{0%{transform:translate3d(-2%,1%,0)}50%{transform:translate3d(2%,-1%,0)}100%{transform:translate3d(0,2%,0)}}
+    @keyframes shardFlash{0%{opacity:0;clip-path:inset(0 100% 0 0)}30%{opacity:.55;clip-path:inset(0 10% 0 4%)}65%{opacity:.18;transform:translate(calc(var(--glitch-rx) + 16px),var(--glitch-ry)) skewX(-18deg)}100%{opacity:0;clip-path:inset(0 0 0 100%)}}
+    @media(max-width:760px){.glitch-cursor{width:300px;opacity:.12;filter:blur(18px)}.glitch-noise{opacity:.022}.glitch-scan:before,.glitch-scan:after{display:none}}
+    @media(prefers-reduced-motion:reduce){.glitch-scan,.glitch-scan:before,.glitch-scan:after,.glitch-noise,.glitch-shard{animation:none!important}.glitch-cursor{display:none}}
+
   </style>
 </head>
 <body>
 <div class="ambient"></div>
+<div class="glitch-ambient" id="glitchAmbient" aria-hidden="true"><div class="glitch-cursor"></div><div class="glitch-scan"></div><div class="glitch-noise"></div><div class="glitch-shard"></div></div>
+
 <main id="loginPage" class="login-shell">
   <section class="login-card">
     <div class="brand"><div class="brand-mark"><img src="favicon.png" alt="Nusa Chat"></div><div class="brand-copy"><strong>Nusa Chat</strong><span>Private realtime space</span></div></div>
@@ -367,5 +387,10 @@ $('infoBtn').addEventListener('click',()=>showToast(currentView.type==='private'
 window.addEventListener('beforeunload',()=>{if(refs.presence)refs.presence.remove();if(refs.typing)refs.typing.remove()});
 (async()=>{try{const saved=JSON.parse(localStorage.getItem('nusa_chat_user'));if(saved?.name&&saved?.roomId&&saved?.accountId&&saved?.isAdmin!==true){const account=(await db.ref('appConfig/accounts/'+saved.accountId).once('value')).val();if(account?.status!=='approved')throw new Error('inactive');if(!await claimActiveSession(saved.accountId,saved.sessionId,saved.name))throw new Error('Akun aktif di perangkat lain.');currentRoomId=saved.roomId;currentRoomName=saved.roomName||DEFAULT_ROOM_NAME;user=saved;els.loginPage.classList.add('hidden');els.chatApp.classList.remove('hidden');$('userName').textContent=user.name;$('userAvatar').textContent=initials(user.name);await startChat()}else localStorage.removeItem('nusa_chat_user')}catch{localStorage.removeItem('nusa_chat_user')}})();
 </script>
+
+<script>
+(()=>{const layer=document.getElementById('glitchAmbient');if(!layer||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const root=document.documentElement;let raf=0,x=innerWidth*.5,y=innerHeight*.42;const paint=()=>{root.style.setProperty('--glitch-x',x+'px');root.style.setProperty('--glitch-y',y+'px');raf=0};addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;x=e.clientX;y=e.clientY;if(!raf)raf=requestAnimationFrame(paint)},{passive:true});let pulseTimer;const pulse=()=>{if(document.hidden)return;root.style.setProperty('--glitch-rx',(Math.random()*36-18).toFixed(0)+'px');root.style.setProperty('--glitch-ry',(Math.random()*80-40).toFixed(0)+'px');layer.classList.remove('pulse');void layer.offsetWidth;layer.classList.add('pulse');pulseTimer=setTimeout(pulse,4200+Math.random()*6500)};pulseTimer=setTimeout(pulse,2800);document.addEventListener('visibilitychange',()=>{clearTimeout(pulseTimer);if(!document.hidden)pulseTimer=setTimeout(pulse,1800)});})();
+</script>
+
 </body>
 </html>
