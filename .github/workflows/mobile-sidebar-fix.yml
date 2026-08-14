@@ -1,0 +1,29 @@
+name: Mobile sidebar fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch index.html
+        env:
+          CSS_B64: ICAgIC8qIE1vYmlsZSBzaWRlYmFyIGNvbXBvc2l0b3IgZml4ICovCiAgICBAbWVkaWEobWF4LXdpZHRoOjc2MHB4KXsKICAgICAgLmFwcHtpc29sYXRpb246aXNvbGF0ZTtvdmVyZmxvdzp2aXNpYmxlIWltcG9ydGFudH0KICAgICAgLnNpZGViYXItYmFja2Ryb3B7ei1pbmRleDoxMDAhaW1wb3J0YW50O2JhY2tkcm9wLWZpbHRlcjpub25lIWltcG9ydGFudDstd2Via2l0LWJhY2tkcm9wLWZpbHRlcjpub25lIWltcG9ydGFudDt3aWxsLWNoYW5nZTpvcGFjaXR5O3RyYW5zZm9ybTp0cmFuc2xhdGVaKDApfQogICAgICAuc2lkZWJhcnt6LWluZGV4OjEwMSFpbXBvcnRhbnQ7dHJhbnNmb3JtOnRyYW5zbGF0ZTNkKC0xMDUlLDAsMCkhaW1wb3J0YW50O3dpbGwtY2hhbmdlOnRyYW5zZm9ybTtiYWNrZmFjZS12aXNpYmlsaXR5OmhpZGRlbjstd2Via2l0LWJhY2tmYWNlLXZpc2liaWxpdHk6aGlkZGVuO2JhY2tkcm9wLWZpbHRlcjpub25lIWltcG9ydGFudDstd2Via2l0LWJhY2tkcm9wLWZpbHRlcjpub25lIWltcG9ydGFudDtiYWNrZ3JvdW5kOmxpbmVhci1ncmFkaWVudCgxNjBkZWcscmdiYSgxMywxMCwzOCwuOTkpLHJnYmEoNSw0LDIxLC45OSkpIWltcG9ydGFudDtvcGFjaXR5OjEhaW1wb3J0YW50O3Zpc2liaWxpdHk6dmlzaWJsZSFpbXBvcnRhbnR9CiAgICAgIC5zaWRlYmFyLm9wZW57dHJhbnNmb3JtOnRyYW5zbGF0ZTNkKDAsMCwwKSFpbXBvcnRhbnR9CiAgICAgIC5zaWRlYmFyLWJhY2tkcm9wLm9wZW57b3BhY2l0eToxIWltcG9ydGFudDtwb2ludGVyLWV2ZW50czphdXRvIWltcG9ydGFudH0KICAgIH0K
+        run: |
+          python -c "from pathlib import Path; import base64; p=Path('index.html'); s=p.read_text(encoding='utf-8'); css=base64.b64decode(__import__('os').environ['CSS_B64']).decode(); marker='    /* Mobile sidebar compositor fix */'; p.write_text(s if marker in s else s.replace('</style>', css+'  </style>', 1), encoding='utf-8')"
+
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/mobile-sidebar-fix.yml
+          git commit -m "Fix mobile sidebar rendering"
+          git push
