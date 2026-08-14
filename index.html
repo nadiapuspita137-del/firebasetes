@@ -105,6 +105,14 @@
     @media(max-width:760px){.glitch-cursor{width:300px;opacity:.12;filter:blur(18px)}.glitch-noise{opacity:.022}.glitch-scan:before,.glitch-scan:after{display:none}}
     @media(prefers-reduced-motion:reduce){.glitch-scan,.glitch-scan:before,.glitch-scan:after,.glitch-noise,.glitch-shard{animation:none!important}.glitch-cursor{display:none}}
 
+      /* Mobile sidebar compositor fix */
+    @media(max-width:760px){
+      .app{isolation:isolate;overflow:visible!important}
+      .sidebar-backdrop{z-index:100!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;will-change:opacity;transform:translateZ(0)}
+      .sidebar{z-index:101!important;transform:translate3d(-105%,0,0)!important;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:linear-gradient(160deg,rgba(13,10,38,.99),rgba(5,4,21,.99))!important;opacity:1!important;visibility:visible!important}
+      .sidebar.open{transform:translate3d(0,0,0)!important}
+      .sidebar-backdrop.open{opacity:1!important;pointer-events:auto!important}
+    }
   </style>
 </head>
 <body>
