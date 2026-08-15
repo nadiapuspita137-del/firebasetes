@@ -185,15 +185,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
-// Mobile sidebar portal: detach it from the app stacking context.
-(()=>{
-  const sidebar=document.getElementById('mobileSidebar');
-  const backdrop=document.getElementById('sidebarBackdrop');
-  if(sidebar && backdrop){
-    document.body.appendChild(backdrop);
-    document.body.appendChild(sidebar);
-  }
-})();
+// Keep the sidebar inside .app so the desktop grid always retains both columns.
 const firebaseConfig={apiKey:"AIzaSyCC6TM-byvbZs2IGPKVgENWIoXwohtjzk4",authDomain:"cobaduluaja-54cd0.firebaseapp.com",databaseURL:"https://chatroom-app-34746-default-rtdb.asia-southeast1.firebasedatabase.app/",projectId:"cobaduluaja-54cd0",storageBucket:"cobaduluaja-54cd0.firebasestorage.app",messagingSenderId:"933990061547",appId:"1:933990061547:web:6da9d8ac071bf11513b5ae",measurementId:"G-0H75EVMMQE"};
 firebase.initializeApp(firebaseConfig);const db=firebase.database();
 const DEFAULT_ROOM_ID=["MI","MO","ME"].join(""),DEFAULT_ROOM_NAME="Ruang Umum",ADMIN_NAME="admin",DEFAULT_ADMIN_CODE_HASH="cad934c2e7e4c159ad53726ca32897c667522c390558592b23e1f2ae0af46e7d",IDLE_MS=10*60*1000,MESSAGE_TTL_MS=24*60*60*1000,CLEANUP_INTERVAL_MS=5*60*1000,MAX_IMAGE_BYTES=2*1024*1024;
