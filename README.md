@@ -5,6 +5,11 @@ Aplikasi chat realtime berbasis Firebase Realtime Database.
 Autentikasi memakai Firebase Authentication dan akses data dibatasi berdasarkan UID,
 membership room, serta role admin di Realtime Database Security Rules.
 
+Pengguna cukup memakai username, password, dan kode room untuk mendaftar mandiri. Admin
+juga dapat membuat akun langsung dari panel. Firebase Authentication tetap digunakan di
+belakang layar melalui alamat internal dan sesi autentikasi sekunder, sehingga pengguna
+tidak perlu mengelola email dan sesi admin utama tidak terputus.
+
 ## Struktur project
 
 ```text
