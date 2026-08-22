@@ -2,26 +2,10 @@
   "rules": {
     ".read": false,
     ".write": false,
-    "admins": {
-      "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-        ".write": false,
-        ".validate": "newData.isBoolean() && newData.val() === true"
-      }
-    },
-    "roomMembers": {
-      "$roomId": {
-        "$uid": {
-          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-          ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
-          ".validate": "newData.isBoolean() && newData.val() === true"
-        }
-      }
-    },
     "appConfig": {
+      ".read": true,
+      ".write": true,
       "rooms": {
-        ".read": "auth != null",
-        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
         "$roomId": {
           ".validate": "newData.hasChildren(['name', 'codeHash', 'active'])",
           "name": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 40" },
@@ -29,96 +13,24 @@
           "active": { ".validate": "newData.isBoolean()" }
         }
       },
-      "accounts": {
-        ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
-        "$uid": {
-          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-          ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.uid === $uid && !data.exists() && newData.child('accountId').val() === auth.uid && newData.child('email').val() === auth.token.email && newData.child('status').val() === 'pending'))",
-          ".validate": "!newData.exists() || (newData.child('accountId').val() === $uid && newData.child('username').isString() && newData.child('username').val().length >= 3 && newData.child('username').val().length <= 24 && newData.child('email').isString() && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'approved' || newData.child('status').val() === 'disabled'))"
-        }
+      "adminCodeHash": {
+        ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
       },
-      "activeSessions": {
-        "$uid": {
-          ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && auth.uid === $uid",
-          ".validate": "!newData.exists() || (newData.child('sessionId').isString() && newData.child('name').isString())"
+      "accounts": {
+        "$accountId": {
+          ".read": true,
+          ".write": true,
+          ".validate": "!newData.exists() || (newData.hasChildren(['accountId','username','usernameLower','roomId','passwordHash','salt','status']) && newData.child('accountId').val() === $accountId && newData.child('username').isString() && newData.child('username').val().length >= 3 && newData.child('username').val().length <= 24 && newData.child('passwordHash').val().matches(/^[a-f0-9]{64}$/) && newData.child('salt').val().matches(/^[a-f0-9]{32}$/) && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected'))"
         }
       }
     },
     "rooms": {
       "$roomId": {
-        "messages": {
-          ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('roomMembers').child($roomId).child(auth.uid).val() === true)",
-          ".indexOn": ["timestamp", "userId"],
-          "$messageId": {
-            ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('roomMembers').child($roomId).child(auth.uid).val() === true && ((!data.exists() && newData.child('type').val() !== 'system' && newData.child('senderId').val() === auth.uid && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('senderId').val() === auth.uid && (!newData.exists() || (newData.child('senderId').val() === data.child('senderId').val() && newData.child('userId').val() === data.child('userId').val() && newData.child('timestamp').val() === data.child('timestamp').val()))))))",
-            ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('timestamp').isNumber() && ((newData.child('type').val() === 'text' && newData.child('text').isString() && newData.child('text').val().length <= 3000) || (newData.child('type').val() === 'image' && newData.child('url').isString() && newData.child('url').val().length <= 2800000) || (newData.child('type').val() === 'system' && root.child('admins').child(auth.uid).val() === true)))"
-          }
-        },
-        "privateThreads": {
-          ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
-          ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
-          "$threadId": {
-            ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || data.child('participants').child(auth.uid).val() === true)",
-            "participants": {
-              ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('roomMembers').child($roomId).child(auth.uid).val() === true && !data.exists()))",
-              ".validate": "newData.hasChild(auth.uid) && newData.child(auth.uid).val() === true",
-              "$participantUid": {
-                ".validate": "newData.isBoolean() && newData.val() === true && (root.child('admins').child($participantUid).val() === true || root.child('roomMembers').child($roomId).child($participantUid).val() === true)"
-              }
-            },
-            "messages": {
-              ".indexOn": ["timestamp"],
-              "$messageId": {
-                ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('roomMembers').child($roomId).child(auth.uid).val() === true && root.child('rooms').child($roomId).child('privateThreads').child($threadId).child('participants').child(auth.uid).val() === true && ((!data.exists() && newData.child('senderId').val() === auth.uid && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('senderId').val() === auth.uid && (!newData.exists() || (newData.child('senderId').val() === data.child('senderId').val() && newData.child('userId').val() === data.child('userId').val() && newData.child('privateTo').val() === data.child('privateTo').val() && newData.child('timestamp').val() === data.child('timestamp').val()))))))",
-                ".validate": "!newData.exists() || (newData.child('privateTo').isString() && newData.child('participants').val() === null && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('timestamp').isNumber() && ((newData.child('type').val() === 'text' && newData.child('text').isString() && newData.child('text').val().length <= 3000) || (newData.child('type').val() === 'image' && newData.child('url').isString() && newData.child('url').val().length <= 2800000)))"
-              }
-            },
-            "typing": {
-              "$sessionId": {
-                ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('rooms').child($roomId).child('privateThreads').child($threadId).child('participants').child(auth.uid).val() === true && (!newData.exists() || newData.child('userId').val() === auth.uid)))"
-              }
-            }
-          }
-        },
-        "users": {
-          ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('roomMembers').child($roomId).child(auth.uid).val() === true)",
-          ".indexOn": ["lastSeen"],
-          "$uid": {
-            ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true))",
-            ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 24)"
-          }
-        },
-        "presence": {
-          ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('roomMembers').child($roomId).child(auth.uid).val() === true)",
-          ".indexOn": ["userId", "at"],
-          "$sessionId": {
-            ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || ((!data.exists() || data.child('userId').val() === auth.uid) && (!newData.exists() || newData.child('userId').val() === auth.uid)))"
-          }
-        },
-        "typing": {
-          ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('roomMembers').child($roomId).child(auth.uid).val() === true)",
-          "$sessionId": {
-            ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('roomMembers').child($roomId).child(auth.uid).val() === true && (!newData.exists() || newData.child('userId').val() === auth.uid)))"
-          }
-        },
-        "settings": {
-          ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('roomMembers').child($roomId).child(auth.uid).val() === true)",
-          ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
-        },
-        "bannedUsers": {
-          ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
-          "$uid": {
-            ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-            ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
-          }
-        },
-        "kicks": {
-          "$uid": {
-            ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-            ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)"
-          }
-        }
+        ".read": true,
+        ".write": true,
+        "messages": { ".indexOn": ["timestamp", "userId"] },
+        "users": { ".indexOn": ["lastSeen"] },
+        "presence": { ".indexOn": ["userId", "at"] }
       }
     }
   }
